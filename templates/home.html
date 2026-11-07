@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Gregado — professional education consultancy helping students choose the right course, college and destination." />
+  <title>Gregado | Education Consultancy</title>
+  <link rel="icon" href="../gallary/assets/logo.png" type="image/png" />
+
+  <!-- SECURITY CHECK: Unauthorized users block -->
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.replace("login.html");
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="../css/style.css" />
+
+  <!-- SPA & Custom Styles -->
+  <style>
+    #spa-place-view {
+      display: none;
+      padding: 120px 3rem 4rem 2.5rem;
+      max-width: 1550px;
+      margin: 0 auto;
+      animation: fadeIn 0.4s ease;
+      color: #f3f4f6;
+    }
+    #spa-place-view.active {
+      display: flex;
+      flex-direction: column;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    .spa-page-title {
+      font-family: 'Manrope', sans-serif; font-size: 2.5rem; font-weight: 800;
+      color: #fff; text-shadow: 0 0 15px rgba(59, 130, 246, 0.5); margin-top: 0; margin-bottom: 2rem;
+      text-transform: uppercase; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .spa-back-btn {
+      background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);
+      padding: 10px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s;
+      font-size: 1rem; text-transform: none;
+    }
+    .spa-back-btn:hover { background: #3b82f6; color: #fff; transform: translateX(-5px); }
+
+    .spa-layout { display: flex; gap: 2.5rem; }
+    .spa-alphabet-nav {
+      position: sticky; top: 110px; display: flex; flex-direction: column; gap: 3px;
+      background: rgba(18, 22, 34, 0.65); border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 10px 6px; border-radius: 30px; backdrop-filter: blur(16px); height: fit-content;
+    }
+    .spa-alphabet-nav button {
+      background: transparent; border: none; color: #9ca3af; font-size: 0.72rem; font-weight: 700;
+      cursor: pointer; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .spa-alphabet-nav button:hover { background: #3b82f6; color: #fff; transform: scale(1.15); }
+    .spa-alphabet-nav button.disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+    .spa-colleges-container { flex: 1; display: flex; flex-direction: column; gap: 2.2rem; }
+    
+    .spa-group-section {
+      background: rgba(18, 22, 34, 0.65); border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px; padding: 1.6rem 2rem; backdrop-filter: blur(16px);
+    }
+    .spa-group-section h2 {
+      font-family: 'Manrope', sans-serif; font-size: 1.45rem; font-weight: 800;
+      margin-bottom: 1.2rem; display: flex; align-items: center; gap: 10px; color: #3b82f6;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.12); padding-bottom: 10px; margin-top:0;
+    }
+
+    .spa-colleges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.1rem; }
+    .spa-college-btn {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.09);
+      border-radius: 14px; padding: 1rem 1.2rem; color: #f3f4f6; cursor: pointer; text-align: left;
+      font-size: 0.92rem; font-weight: 600; transition: all 0.28s ease; display: flex; align-items: center; justify-content: space-between;
+    }
+    .spa-college-btn:hover {
+      background: rgba(59, 130, 246, 0.18); border-color: #3b82f6; transform: translateY(-3px); color: #fff;
+    }
+
+    /* Modals Base */
+    .spa-modal-backdrop {
+      position: fixed; inset: 0; background: rgba(3, 5, 9, 0.85); backdrop-filter: blur(20px);
+      z-index: 99999; display: none; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .spa-modal-backdrop.is-active { display: flex; animation: fadeIn 0.3s forwards; }
+    .spa-detail-modal {
+      background: rgba(14, 18, 28, 0.95); border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 24px; width: 100%; max-width: 820px; max-height: 90vh; overflow-y: auto;
+      padding: 2.2rem; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+    .spa-close-btn {
+      position: absolute; top: 1.4rem; right: 1.4rem; background: rgba(255, 255, 255, 0.1); border: none;
+      color: #fff; font-size: 1.4rem; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; transition: 0.2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .spa-close-btn:hover { background: rgba(239, 68, 68, 0.8); transform: rotate(90deg); }
+    .spa-modal-title { font-family: 'Manrope', sans-serif; font-size: 1.7rem; font-weight: 800; margin-top: 0; margin-bottom: 0.3rem; color: #fff; }
+    .spa-location-tag { color: #3b82f6; font-size: 0.88rem; font-weight: 600; margin-bottom: 1.5rem; display: block; }
+    
+    .spa-slider-container {
+      position: relative; width: 100%; height: 380px; border-radius: 18px; overflow: hidden;
+      margin-bottom: 1.6rem; background: #000; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .spa-slider-item { position: absolute; inset: 0; opacity: 0; transition: opacity 0.7s ease-in-out; display: flex; align-items: center; justify-content: center; }
+    .spa-slider-item.active { opacity: 1; }
+    .spa-slider-item img, .spa-slider-item video { width: 100%; height: 100%; object-fit: cover; }
+    .spa-slider-nav { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); display: flex; gap: 7px; z-index: 5; }
+    .spa-slider-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, 0.4); cursor: pointer; transition: 0.3s; }
+    .spa-slider-dot.active { background: #3b82f6; transform: scale(1.2); }
+
+    .spa-content-box p { color: #d1d5db; font-size: 0.96rem; margin-bottom: 0.9rem; line-height: 1.6; }
+    .spa-pdf-action {
+      display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.6rem;
+      background: rgba(59, 130, 246, 0.1); border: 1px dashed rgba(59, 130, 246, 0.4); border-radius: 16px; margin-top: 1.5rem;
+    }
+    .spa-pdf-action strong { display: block; color: #fff; font-size: 1rem; margin-bottom: 2px; }
+    .spa-pdf-action span { font-size: 0.8rem; color: #9ca3af; }
+    .spa-download-btn {
+      display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px;
+      background: #3b82f6; color: #fff; text-decoration: none; font-weight: 600; font-size: 0.88rem; cursor: pointer; border: none; transition: 0.2s;
+    }
+    .spa-download-btn:hover { background: #2563eb; transform: translateY(-2px); }
+
+    /* About Modal Styles */
+    .about-modal-content { color: #d1d5db; line-height: 1.7; font-size: 0.95rem; }
+    .about-modal-content h4 { color: #60a5fa; font-size: 1.1rem; margin-top: 1.5rem; margin-bottom: 0.8rem; font-family: 'Manrope', sans-serif; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; display: inline-block;}
+    .about-modal-content ul { padding-left: 1.2rem; margin-bottom: 1rem; }
+    .about-modal-content li { margin-bottom: 0.6rem; }
+    .team-section { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); margin-top: 2rem; }
+    .dev-links { display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap; }
+    .dev-btn { background: rgba(59, 130, 246, 0.1); color: #93c5fd; padding: 10px 18px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.85rem; border: 1px solid rgba(59, 130, 246, 0.3); transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+    .dev-btn:hover { background: #3b82f6; color: #fff; transform: translateY(-2px); }
+
+    /* AI Search Result Items */
+    .spa-search-item {
+      background: rgba(255,255,255,0.06); padding: 14px 18px; border-radius: 14px;
+      cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; text-align: left;
+    }
+    .spa-search-item:hover { background: rgba(59, 130, 246, 0.25); border-color: #3b82f6; transform: translateX(4px); }
+    .spa-search-item strong { display: block; color: #fff; font-size: 1.05rem; margin-bottom: 3px; }
+    .spa-search-item span { display: block; color: #9ca3af; font-size: 0.85rem; }
+
+    @media(max-width:900px) {
+      .spa-layout { flex-direction: column; }
+      .spa-alphabet-nav { display: none; }
+      .spa-page-title { flex-direction: column; gap: 15px; text-align: center; }
+      #spa-place-view { padding: 100px 1rem 2rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cursor-glow" aria-hidden="true"></div>
+
+  <!-- Header -->
+  <header class="site-header" id="siteHeader">
+    <div class="nav-shell">
+      <a class="brand" href="#home" onclick="closePlaceView()" aria-label="Gregado home">
+        <img src="../gallary/assets/logo.png" alt="Gregado logo" />
+        <span>Gregado</span>
+      </a>
+
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="#home" class="nav-link active" onclick="closePlaceView()">
+          <span class="nav-icon">⌂</span>
+          <span>Home</span>
+        </a>
+        <button class="nav-link nav-search-trigger" type="button" onclick="triggerAISearch(event)">
+          <span class="nav-icon">⌕</span>
+          <span>Search</span>
+        </button>
+        <!-- ഇതാണ് നമ്മൾ പക്കാ ആക്കിയ മെനു ബട്ടൺ -->
+        <button class="nav-link" type="button" onclick="openDesktopMenu()">
+          <span class="nav-icon menu-lines">☰</span>
+          <span>Menu</span>
+        </button>
+      </nav>
+
+      <div class="nav-tagline">YOUR DREAM <i></i> OUR GUIDANCE</div>
+
+      <!-- ഇതാണ് നമ്മൾ പക്കാ ആക്കിയ മൊബൈൽ മെനു ബട്ടൺ -->
+      <button class="mobile-menu-btn" type="button" id="mobileMenuBtn" onclick="toggleMobileMenu(this)" aria-label="Open navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Mobile Drawer -->
+    <div class="mobile-drawer" id="mobileDrawer" style="transform: translateY(-150%); transition: transform 0.4s ease;">
+      <a href="#home" onclick="closePlaceView(); closeMenus();">Home</a>
+      <a href="#destinations" onclick="closePlaceView(); closeMenus();">Destinations</a>
+      <a href="#" onclick="openAboutModal();">About Gregado</a>
+      <button type="button" onclick="triggerAISearch(event); closeMenus();">Search</button>
+      <a href="https://github.com/akshay2255k" target="_blank" rel="noopener noreferrer">Developer</a>
+      <button type="button" onclick="handleLogout()" style="color: #ef4444; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 10px; padding-top: 15px;">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Landing Sections -->
+    <div id="main-landing-sections">
+      <section class="hero" id="home">
+        <div class="hero-slider" id="heroSlider" aria-label="Gregado highlights">
+          <div class="hero-slide is-active" data-index="0"><img src="https://i.ibb.co/V53pyk2/IMG-20261107-WA0038.jpg" alt="Students walking across a university campus" /></div>
+          <div class="hero-slide" data-index="1"><img src="https://i.ibb.co/60RGRczQ/IMG-20261107-WA0036.jpg" alt="Students studying in a classroom" /></div>
+          <div class="hero-slide" data-index="2"><img src="https://i.ibb.co/WvL3wSp5/IMG-20261107-WA0034.jpg" alt="Modern university building" /></div>
+          <div class="hero-slide" data-index="3"><img src="https://i.ibb.co/99NRJSzw/IMG-20261107-WA0032.jpg" alt="University students on campus" /></div>
+          <div class="hero-slide" data-index="4"><img src="https://i.ibb.co/GrjxPT8/IMG-20261107-WA0030.jpg" alt="Graduates celebrating outdoors" /></div>
+          <div class="hero-slide" data-index="5"><img src="https://i.ibb.co/JRzNxtnK/IMG-20261107-WA0028.jpg" alt="University campus entrance" /></div>
+        </div>
+
+        <div class="hero-vignette"></div>
+        <div class="hero-grid"></div>
+
+        <div class="hero-content">
+          <div class="hero-copy reveal">
+            <div class="eyebrow"><span></span> EDUCATION CONSULTANCY</div>
+            <h1>Build Your Future<br>With <em>Gregado</em></h1>
+            <p>Expert guidance for your higher education journey. We help you choose the right course, college and destination for a brighter tomorrow.</p>
+            <div class="hero-actions">
+              <a class="primary-btn magnetic ripple-btn" href="#destinations">
+                <span class="btn-mark">✦</span><span>Start Your Journey</span><span class="btn-arrow">→</span>
+              </a>
+              <button class="secondary-btn ripple-btn" onclick="openAboutModal()" type="button">
+                <span>About Us</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="hero-side reveal delay-2">
+            <div class="slide-counter"><strong id="slideCurrent">01</strong><span>/</span><span>10</span></div>
+            <div class="progress-track"><span id="slideProgress"></span></div>
+            <div class="slider-dots" id="sliderDots" aria-label="Slide selector"></div>
+          </div>
+        </div>
+
+        <div class="hero-bottom">
+          <div class="hero-stat"><strong>10+</strong><span>Destinations</span></div>
+          <div class="hero-stat"><strong>100%</strong><span>Student Focused</span></div>
+          <div class="hero-stat"><strong>1:1</strong><span>Guidance</span></div>
+          <div class="scroll-cue"><span>SCROLL TO EXPLORE</span><i></i></div>
+        </div>
+      </section>
+
+      <section class="destination-section" id="destinations">
+        <div class="section-top reveal">
+          <div>
+            <div class="section-kicker"><span></span> CHOOSE YOUR DESTINATION</div>
+            <h2>Find the place that <span>fits your future.</span></h2>
+          </div>
+          <p>Explore leading education destinations across South India with guidance tailored to your goals.</p>
+        </div>
+
+        <div class="destination-grid">
+          <button class="destination-card reveal" style="--delay:.42s; --img:url('https://images.unsplash.com/photo-1558431382-27e303142255?auto=format&fit=crop&w=800&q=85')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Hyderabad</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.26s; --img:url('https://images.unsplash.com/photo-1558862107-d49ef2a04d72?auto=format&fit=crop&w=800&q=85')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Coimbatore</strong></div><span class="card-arrow">↗</span>
+          </button>
+          
+          <button class="destination-card reveal" style="--delay:.14s; --img: url('../gallary/places/banglore.gif'), url('https://i.pinimg.com/1200x/24/b0/8b/24b08ba78893fccc5e771b8c6ddbac13.jpg')" onclick="handlePlaceClick(event, 'bengaluru')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Bengaluru</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.10s; --img: url('../gallary/places/manglore.gif'), url('https://i.pinimg.com/1200x/0e/e0/0a/0ee00a4a0d8c513e4de684679bc4f2a0.jpg')" onclick="handlePlaceClick(event, 'manglore')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Manglore</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.18s; --img: url('../gallary/places/mysore.gif'), url('https://i.pinimg.com/1200x/cd/89/78/cd897813e8ac7a8468935192d0f865b1.jpg')" onclick="handlePlaceClick(event, 'mysore')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Mysore</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.34s; --img: url('../gallary/places/kanyakumari.gif'), url('https://i.pinimg.com/1200x/4f/98/56/4f98567fbfe2d8a249ff74b5453f1721.jpg')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Kanyakumari</strong></div><span class="card-arrow">↗</span>
+          </button>
+          
+          <button class="destination-card reveal" style="--delay:.02s; --img: url('../gallary/places/kerala.gif'), url('https://i.pinimg.com/1200x/8a/4d/71/8a4d710d04bb0162afa5f7da406bd142.jpg');" onclick="handlePlaceClick(event, 'kerala')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Kerala</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.30s; --img: url('../gallary/places/chennai.gif'), url('https://i.pinimg.com/1200x/56/e5/49/56e549cf17d1a63af665403a263ab411.jpg')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Chennai</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.22s; --img: url('../gallary/places/tamilnadu.gif'), url('https://i.pinimg.com/1200x/cd/23/c8/cd23c87661f00dc45f11c39eb9ffd3c5.jpg')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Tamilnadu</strong></div><span class="card-arrow">↗</span>
+          </button>
+
+          <button class="destination-card reveal" style="--delay:.06s; --img: url('../gallary/places/karnataka.gif'), url('https://i.pinimg.com/1200x/79/66/4f/79664f0c5af674c5000b5a1f271b2772.jpg')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Karnataka</strong></div><span class="card-arrow">↗</span>
+          </button>
+        
+          <button class="destination-card reveal" style="--delay:.38s; --img: url('../gallary/places/andhrapradesh.gif'), url('https://i.pinimg.com/1200x/2f/f1/f2/2ff1f2854e9323cb81da0b4f4f8b34bb.jpg')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Andhrapradesh</strong></div><span class="card-arrow">↗</span>
+          </button>
+  
+          <button class="destination-card reveal" style="--delay:.46s; --img:url('https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=800&q=85')" onclick="handlePlaceClick(event, 'other')">
+            <div class="card-image"></div><div class="card-shade"></div>
+            <div class="card-text"><span class="pin">⌖</span><strong>Other Places</strong></div><span class="card-arrow">↗</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="why-section" id="why-us">
+        <div class="why-inner">
+          <div class="why-copy reveal">
+            <div class="section-kicker"><span></span> GET IN TOUCH</div>
+            <h2>Less confusion.<br><span>More direction.</span></h2>
+            <p>From course discovery to destination selection, Gregado keeps your education journey clear, simple and student-first.</p>
+            <a class="text-btn ripple-btn" href="#contact">Talk to a counsellor <span>→</span></a>
+          </div>
+
+          <div class="feature-list">
+            <article class="feature-card reveal">
+              <span class="feature-number">01</span>
+              <div><a href="tel:+91 8089762932"><h3>&#9742; Phone Call</h3><p>+91 8089762932</p></a></div>
+            </article>
+            <article class="feature-card reveal">
+              <span class="feature-number">02</span>
+              <div><a href="https://wa.me/8089762932" target="_blank"><h3><img src="../gallary/assets/whatsapp.png" alt="wtapp" width="25" height="25"> WhatsApp</h3></a></div>
+            </article>
+            <article class="feature-card reveal">
+              <span class="feature-number">03</span>
+              <div><a href="mailto:anujithsabu1234@gmail.com"><h3>✉ Email</h3><p>anujithsabu1234@gmail.com</p></a></div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-section" id="contact">
+        <div class="cta-orb orb-one"></div><div class="cta-orb orb-two"></div>
+        <div class="cta-inner reveal">
+          <div class="section-kicker light"><span></span> READY TO START?</div>
+          <h2>Your next chapter<br><span>starts here.</span></h2>
+          <p>Take the first step toward a more confident education decision.</p>
+          <a href="https://wa.me/8089762932" class="primary-btn light-btn ripple-btn" target="_blank">
+            <span>Connect With Gregado</span><span class="btn-arrow">→</span>
+          </a>
+        </div>
+      </section>
+    </div>
+    
+    <!-- SPA Place View -->
+    <section id="spa-place-view">
+      <div class="spa-page-title">
+        <h1 id="spa-title" style="margin:0;">LOCATION NAME</h1>
+        <button class="spa-back-btn" onclick="closePlaceView()">← Back to Home</button>
+      </div>
+
+      <div class="spa-layout">
+        <nav class="spa-alphabet-nav" id="spa-nav"></nav>
+        <main class="spa-colleges-container" id="spa-container"></main>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-brand"><img src="../gallary/assets/logo.png" alt=""><strong>Gregado</strong></div>
+    <span>Powered By → </span>
+    <span><a href="https://www.instagram.com/akshaye_e_/" target="_blank" rel="noopener noreferrer"><img src="../gallary/assets/instagram.png" alt="insta" style="width: 20px; height: 20px;"></a></span>
+  </footer>
+
+  <!-- Dedicated AI Smart Search Overlay -->
+  <div id="aiSearchOverlay" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(7,9,14,0.92); backdrop-filter:blur(20px); padding:2rem; justify-content:center; align-items:flex-start;">
+    <div style="width:100%; max-width:720px; margin-top:8vh; position:relative;">
+      <button onclick="closeAISearch()" type="button" aria-label="Close search" style="position:absolute; right:0; top:-40px; background:none; border:none; color:#fff; font-size:2.2rem; cursor:pointer; line-height:1;">&times;</button>
+      <div style="font-size:0.8rem; font-weight:700; color:#3b82f6; letter-spacing:1px; margin-bottom:6px;">✦ AI SMART SEARCH</div>
+      <h2 id="aiSearchHeading" style="color:#fff; font-family:'Manrope',sans-serif; margin-bottom:1.5rem; font-size:1.8rem; font-weight:800;">Where do you want to study?</h2>
+      
+      <div style="position:relative; width:100%;">
+        <span style="position:absolute; left:18px; top:50%; transform:translateY(-50%); color:#9ca3af; font-size:1.2rem;">⌕</span>
+        <input id="aiSmartInput" type="text" placeholder="Type here..." autocomplete="off" style="width:100%; padding:16px 20px 16px 50px; border-radius:14px; border:1px solid rgba(255,255,255,0.18); background:rgba(255,255,255,0.06); color:#fff; font-size:1.05rem; outline:none; transition:0.3s;">
+      </div>
+      
+      <div id="aiSmartResults" style="margin-top:20px; max-height:55vh; overflow-y:auto; display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- Menu Overlay (Desktop) -->
+  <div class="menu-overlay" id="menuOverlay" style="display:none; position:fixed; inset:0; z-index:999999; background:rgba(7,9,14,0.95); backdrop-filter:blur(15px); opacity:0; transition: opacity 0.3s ease; align-items:center; justify-content:center;">
+    <div class="menu-panel" style="position:relative; width:100%; max-width:400px; padding:2rem; text-align:center;">
+      <button class="close-panel" onclick="closeDesktopMenu()" type="button" aria-label="Close menu" style="position:absolute; top:-40px; right:0; background:none; border:none; color:#fff; font-size:2.5rem; cursor:pointer;">&times;</button>
+      <div class="section-kicker"><span></span> EXPLORE GREGADO</div>
+      <h2 style="margin-bottom: 2rem;">Everything starts<br><span>with the right choice.</span></h2>
+      <a href="#" class="menu-item" onclick="openAboutModal()">About Gregado <span>↗</span></a>
+      <a href="https://github.com/akshay2255k" class="menu-item" target="_blank" rel="noopener noreferrer">DEVELOPER <span>↗</span></a>
+      <a href="#" class="menu-item" onclick="handleLogout()" style="color: #fca5a5; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">Logout <span>⎋</span></a>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- SPA College Details Modal -->
+  <div class="spa-modal-backdrop" id="spaModal">
+    <div class="spa-detail-modal">
+      <button class="spa-close-btn" id="spaModalClose">&times;</button>
+      <h3 class="spa-modal-title" id="spaModalTitle">College Name</h3>
+      <span class="spa-location-tag" id="spaModalLocation">📍 Location</span>
+
+      <div class="spa-slider-container" id="spaSlider">
+        <div class="spa-slider-nav" id="spaSliderNav"></div>
+      </div>
+
+      <div class="spa-content-box" id="spaContentBox">
+        <!-- Dynamic content goes here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT GREGADO MODAL -->
+  <div class="spa-modal-backdrop" id="aboutModal">
+    <div class="spa-detail-modal" style="max-width: 650px;">
+      <button class="spa-close-btn" onclick="closeAboutModal()">&times;</button>
+      <h3 class="spa-modal-title" style="margin-bottom: 1.5rem; color: #fff;">About Gregado</h3>
+      
+      <div class="about-modal-content">
+        <p><strong>Gregado</strong> is a professional education consultancy platform designed to eliminate confusion and bring direction to your higher education journey. We provide expert guidance tailored to each student's goals, helping you choose the right course, college, and destination with absolute clarity.</p>
+        
+        <h4>✦ Core Benefits</h4>
+        <ul>
+          <li>100% Student-Focused 1:1 Career Guidance.</li>
+          <li>Direct access to top institutions across 10+ South Indian destinations.</li>
+          <li>Complete transparency on fee structures and syllabus (Downloadable PDFs).</li>
+          <li>Hassle-free admission support and global placement tie-ups.</li>
+        </ul>
+
+        <div class="team-section">
+          <h4>✦ Management & Development</h4>
+          <p style="margin-bottom: 8px;"><strong>Owner & Founder:</strong><a href="https://www.instagram.com/anujiitt_hh/"> Anujith Sabu</a></p>
+          <p><strong>Lead AI/Web Developer:</strong> Akshay K.</p>
+          
+          <div class="dev-links">
+            <a href="https://github.com/akshay2255k" target="_blank" class="dev-btn">
+              <img src="../gallary/assets/github.png" width="18" alt="GitHub" onerror="this.style.display='none'"> GitHub Profile
+            </a>
+            <a href="https://www.instagram.com/akshaye_e_/" target="_blank" class="dev-btn">
+              <img src="../gallary/assets/instagram.png" width="18" alt="Insta" onerror="this.style.display='none'"> Instagram
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Original JS -->
+  <script src="../js/app.js"></script>
+
+  <!-- Script for UI Toggles (Menu & Modals & Logout) -->
+  <script>
+    // Logout Function
+    window.handleLogout = function() {
+      localStorage.clear();
+      window.location.replace("login.html");
+    };
+
+    // Bulletproof Menu Logic (Overrides app.js interference)
+    window.openDesktopMenu = function() {
+      const menu = document.getElementById('menuOverlay');
+      menu.style.display = 'flex';
+      menu.style.visibility = 'visible';
+      setTimeout(() => menu.style.opacity = '1', 10);
+    };
+
+    window.closeDesktopMenu = function() {
+      const menu = document.getElementById('menuOverlay');
+      menu.style.opacity = '0';
+      setTimeout(() => {
+         menu.style.display = 'none';
+         menu.style.visibility = 'hidden';
+      }, 300);
+    };
+
+    window.toggleMobileMenu = function(btn) {
+      btn.classList.toggle('is-active');
+      const drawer = document.getElementById('mobileDrawer');
+      if (drawer.style.transform === 'translateY(0%)') {
+         drawer.style.transform = 'translateY(-150%)';
+      } else {
+         drawer.style.transform = 'translateY(0%)';
+      }
+    };
+
+    window.closeMenus = function() {
+      closeDesktopMenu();
+      const drawer = document.getElementById('mobileDrawer');
+      if(drawer) drawer.style.transform = 'translateY(-150%)';
+      const mobileBtn = document.getElementById('mobileMenuBtn');
+      if(mobileBtn) mobileBtn.classList.remove('is-active');
+    };
+
+    // About Modal Logic
+    window.openAboutModal = function() {
+      closeMenus(); 
+      const aModal = document.getElementById('aboutModal');
+      aModal.style.display = 'flex';
+    };
+    
+    window.closeAboutModal = function() {
+      document.getElementById('aboutModal').style.display = 'none';
+    };
+
+    window.addEventListener('click', (e) => {
+      const aModal = document.getElementById('aboutModal');
+      if(e.target === aModal) aModal.style.display = 'none';
+    });
+  </script>
+
+  <!-- DYNAMIC FIREBASE INTEGRATION & SPA ENGINE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnmgIclnhm2tU-0d0ZYB_5KOxt86WMkD8",
+      authDomain: "grigado.firebaseapp.com",
+      projectId: "grigado",
+      storageBucket: "grigado.firebasestorage.app",
+      messagingSenderId: "808047975194",
+      appId: "1:808047975194:web:f3ddf29d162660f84caaa3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    let placesData = {};
+    let rawCollegesCache = [];
+
+    onSnapshot(collection(db, "colleges"), (snapshot) => {
+      placesData = {};
+      rawCollegesCache = [];
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        data.id = doc.id;
+        rawCollegesCache.push(data);
+
+        const sk = data.stateKey;
+        if (!placesData[sk]) {
+          placesData[sk] = { name: data.stateName, type: data.type, data: [] };
+        }
+
+        if (data.type === 'district') {
+          let distObj = placesData[sk].data.find(d => d.district === data.district);
+          if (!distObj) {
+            distObj = { district: data.district, colleges: [] };
+            placesData[sk].data.push(distObj);
+          }
+          distObj.colleges.push(data);
+        } else {
+          placesData[sk].data.push(data);
+        }
+      });
+
+      if (currentPlaceKey && placesData[currentPlaceKey]) {
+        renderPlaceData(currentPlaceKey);
+      } else if (currentPlaceKey && !placesData[currentPlaceKey]) {
+        document.getElementById('spa-container').innerHTML = '<h3 style="color:#9ca3af; text-align:center;">No colleges currently available in this region.</h3>';
+      }
+    });
+
+    const mainSections = document.getElementById('main-landing-sections');
+    const spaPlaceView = document.getElementById('spa-place-view');
+    const spaTitle = document.getElementById('spa-title');
+    const spaNav = document.getElementById('spa-nav');
+    const spaContainer = document.getElementById('spa-container');
+    let currentPlaceKey = '';
+
+    window.handlePlaceClick = function(e, placeKey) {
+      if(e) { e.preventDefault(); e.stopPropagation(); }
+      currentPlaceKey = placeKey;
+      document.body.style.background = '#07090e';
+      mainSections.style.display = 'none';
+      spaPlaceView.classList.add('active');
+      
+      if(placesData[placeKey]) {
+         spaTitle.textContent = placesData[placeKey].name.toUpperCase();
+         renderPlaceData(placeKey);
+      } else {
+         spaTitle.textContent = "COMING SOON";
+         spaContainer.innerHTML = '<h3 style="color:#9ca3af; text-align:center; margin-top:3rem;">No colleges currently available in this region.</h3>';
+         spaNav.innerHTML = '';
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.closePlaceView = function() {
+      currentPlaceKey = '';
+      document.body.style.background = '';
+      spaPlaceView.classList.remove('active');
+      mainSections.style.display = 'block';
+    };
+
+    function renderPlaceData(key) {
+      spaNav.innerHTML = ''; spaContainer.innerHTML = '';
+      const pData = placesData[key];
+      if(!pData) return;
+
+      if (pData.type === 'district') {
+        pData.data.sort((a,b) => a.district.localeCompare(b.district));
+        for (let i = 65; i <= 90; i++) {
+          const char = String.fromCharCode(i);
+          const btn = document.createElement('button'); btn.textContent = char;
+          const found = pData.data.find(d => d.district.toUpperCase().startsWith(char));
+          if(found) btn.onclick = () => document.getElementById(`sec-${found.district}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+          else btn.classList.add('disabled');
+          spaNav.appendChild(btn);
+        }
+
+        pData.data.forEach(item => {
+          const sec = document.createElement('section'); sec.className = 'spa-group-section'; sec.id = `sec-${item.district}`;
+          sec.innerHTML = `<h2>📍 ${item.district} Colleges</h2>`;
+          const grid = document.createElement('div'); grid.className = 'spa-colleges-grid';
+          
+          item.colleges.sort((a,b) => a.name.localeCompare(b.name)).forEach(colObj => {
+            const btn = document.createElement('button'); btn.className = 'spa-college-btn';
+            btn.innerHTML = `<span>${colObj.name}</span><span class="arrow">↗</span>`;
+            btn.onclick = () => openModal(colObj, `${item.district}, ${pData.name}`);
+            grid.appendChild(btn);
+          });
+          sec.appendChild(grid); spaContainer.appendChild(sec);
+        });
+
+      } else {
+        const sorted = pData.data.sort((a,b) => a.name.localeCompare(b.name));
+        const grouped = {};
+        sorted.forEach(c => { const l = c.name.charAt(0).toUpperCase(); if(!grouped[l]) grouped[l] = []; grouped[l].push(c); });
+
+        for (let i = 65; i <= 90; i++) {
+          const char = String.fromCharCode(i);
+          const btn = document.createElement('button'); btn.textContent = char;
+          if(grouped[char]) btn.onclick = () => document.getElementById(`sec-${char}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+          else btn.classList.add('disabled');
+          spaNav.appendChild(btn);
+        }
+
+        Object.keys(grouped).forEach(letter => {
+          const sec = document.createElement('section'); sec.className = 'spa-group-section'; sec.id = `sec-${letter}`;
+          sec.innerHTML = `<h2>${letter}</h2>`;
+          const grid = document.createElement('div'); grid.className = 'spa-colleges-grid';
+          grouped[letter].forEach(colObj => {
+            const btn = document.createElement('button'); btn.className = 'spa-college-btn';
+            btn.innerHTML = `<span>${colObj.name}</span><span class="arrow">↗</span>`;
+            btn.onclick = () => openModal(colObj, pData.name);
+            grid.appendChild(btn);
+          });
+          sec.appendChild(grid); spaContainer.appendChild(sec);
+        });
+      }
+    }
+
+    const sModal = document.getElementById('spaModal');
+    let sTimer = null;
+
+    window.openModal = function(colObj, locationStr) {
+      document.getElementById('spaModalTitle').textContent = colObj.name;
+      document.getElementById('spaModalLocation').textContent = `📍 ${locationStr}`;
+      sModal.classList.add('is-active');
+
+      const slider = document.getElementById('spaSlider');
+      slider.innerHTML = '<div class="spa-slider-nav" id="spaSliderNav"></div>';
+      const nav = document.getElementById('spaSliderNav');
+
+      let mediaList = colObj.images && colObj.images.length > 0 
+          ? colObj.images 
+          : [{ type: 'image', url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80' }];
+
+      mediaList.forEach((m, i) => {
+        const item = document.createElement('div'); item.className = `spa-slider-item ${i===0?'active':''}`;
+        if(m.type === 'image') {
+          const img = document.createElement('img'); img.src = m.url;
+          item.appendChild(img);
+        } else if (m.type === 'video') {
+          const vid = document.createElement('video'); vid.src = m.url;
+          vid.autoplay = true; vid.muted = true; vid.loop = true; vid.playsInline = true;
+          item.appendChild(vid);
+        }
+        slider.appendChild(item);
+        
+        if(mediaList.length > 1) {
+            const dot = document.createElement('div'); dot.className = `spa-slider-dot ${i===0?'active':''}`;
+            dot.onclick = () => showMSlide(i);
+            nav.appendChild(dot);
+        }
+      });
+
+      const contentBox = document.getElementById('spaContentBox');
+      const descHtml = colObj.description ? `<p>${colObj.description.replace(/\n/g, '<br>')}</p>` : '<p>More details coming soon.</p>';
+      
+      const pdfHtml = colObj.pdfUrl 
+        ? `<a href="${colObj.pdfUrl}" target="_blank" class="spa-download-btn"><span>⬇ View/Download PDF</span></a>` 
+        : `<span style="color:#9ca3af; font-size:0.85rem;">No document attached</span>`;
+
+      contentBox.innerHTML = `
+        ${descHtml}
+        <div class="spa-pdf-action">
+          <div class="spa-pdf-info">
+            <strong>Fee Structure & Syllabus Brochure</strong>
+            <span>Official college documents & course breakdowns</span>
+          </div>
+          ${pdfHtml}
+        </div>
+      `;
+
+      let cur = 0;
+      if(sTimer) clearInterval(sTimer);
+      if(mediaList.length > 1) {
+          sTimer = setInterval(() => { cur = (cur + 1) % mediaList.length; showMSlide(cur); }, 3500);
+      }
+    }
+
+    function showMSlide(idx) {
+      document.querySelectorAll('.spa-slider-item').forEach((el, i) => el.classList.toggle('active', i===idx));
+      document.querySelectorAll('.spa-slider-dot').forEach((el, i) => el.classList.toggle('active', i===idx));
+    }
+
+    document.getElementById('spaModalClose').onclick = () => { sModal.classList.remove('is-active'); clearInterval(sTimer); };
+    window.addEventListener('click', (e) => { if(e.target === sModal) { sModal.classList.remove('is-active'); clearInterval(sTimer); }});
+
+    // ==========================================
+    // AI SMART SEARCH FUNCTIONALITY
+    // ==========================================
+    const searchOverlay = document.getElementById('aiSearchOverlay');
+    const aiInput = document.getElementById('aiSmartInput');
+    const aiResults = document.getElementById('aiSmartResults');
+    const aiHeading = document.getElementById('aiSearchHeading');
+
+    window.triggerAISearch = function(e) {
+      if(e) { e.preventDefault(); e.stopPropagation(); }
+      closeMenus();
+      searchOverlay.style.display = 'flex';
+      aiInput.value = '';
+      
+      if (!currentPlaceKey) {
+        aiHeading.textContent = "Where do you want to study?";
+        aiInput.placeholder = "Search places or colleges...";
+        showPlacesList();
+      } else {
+        const placeName = placesData[currentPlaceKey] ? placesData[currentPlaceKey].name : currentPlaceKey;
+        aiHeading.textContent = `Search in ${placeName}`;
+        aiInput.placeholder = `Search colleges in ${placeName}...`;
+        aiResults.innerHTML = '';
+      }
+      setTimeout(() => aiInput.focus(), 150);
+    };
+
+    window.closeAISearch = function() {
+      searchOverlay.style.display = 'none';
+    };
+
+    function showPlacesList() {
+      const placesList = Object.keys(placesData).map(k => ({ key: k, name: placesData[k].name }));
+      aiResults.innerHTML = placesList.map(p => `
+        <div class="spa-search-item" onclick="selectAISearch('place', '${p.key}')">
+          <strong>📍 ${p.name}</strong><span>Click to explore destination</span>
+        </div>
+      `).join('');
+    }
+
+    function levDist(a, b) {
+      const mat = Array.from({ length: a.length + 1 }, () => []);
+      for (let i = 0; i <= a.length; i++) mat[i][0] = i;
+      for (let j = 0; j <= b.length; j++) mat[0][j] = j;
+      for (let i = 1; i <= a.length; i++) {
+        for (let j = 1; j <= b.length; j++) {
+          const c = a[i - 1].toLowerCase() === b[j - 1].toLowerCase() ? 0 : 1;
+          mat[i][j] = Math.min(mat[i - 1][j] + 1, mat[i][j - 1] + 1, mat[i - 1][j - 1] + c);
+        }
+      }
+      return mat[a.length][b.length];
+    }
+
+    aiInput.addEventListener('input', function() {
+      const q = this.value.trim().toLowerCase();
+      
+      if (!q) { 
+        if (!currentPlaceKey) showPlacesList();
+        else aiResults.innerHTML = '';
+        return; 
+      }
+      
+      let matches = [];
+
+      if (!currentPlaceKey) {
+        Object.keys(placesData).forEach(k => {
+          if (placesData[k].name.toLowerCase().includes(q)) {
+            matches.push({ type: 'place', n: placesData[k].name, key: k, s: 100 });
+          }
+        });
+        rawCollegesCache.forEach(col => {
+            let score = 0;
+            if(col.name.toLowerCase().includes(q)) score += 10;
+            col.name.toLowerCase().split(' ').forEach(w => { const dist = levDist(q,w); if(dist<=2) score += (5-dist); });
+            if(score > 0) {
+               const loc = col.type === 'district' ? `${col.district}, ${col.stateName}` : col.stateName;
+               matches.push({ type: 'college', n: col.name, l: loc, key: col.stateKey, id: col.id, s: score });
+            }
+        });
+      } else {
+        rawCollegesCache.filter(c => c.stateKey === currentPlaceKey).forEach(col => {
+            let score = 0;
+            if(col.name.toLowerCase().includes(q)) score += 10;
+            col.name.toLowerCase().split(' ').forEach(w => { const dist = levDist(q,w); if(dist<=2) score += (5-dist); });
+            if(score > 0) {
+               const loc = col.type === 'district' ? `${col.district}, ${col.stateName}` : col.stateName;
+               matches.push({ type: 'college', n: col.name, l: loc, key: col.stateKey, id: col.id, s: score });
+            }
+        });
+      }
+
+      matches.sort((a,b) => b.s - a.s);
+      
+      if (matches.length > 0) {
+        aiResults.innerHTML = matches.slice(0, 10).map(m => {
+          if (m.type === 'place') {
+            return `<div class="spa-search-item" onclick="selectAISearch('place', '${m.key}')">
+                      <strong>📍 ${m.n}</strong><span>Click to explore destination</span>
+                    </div>`;
+          } else {
+            return `<div class="spa-search-item" onclick="selectAISearch('college', '${m.key}', '${m.id}')">
+                      <strong>🎓 ${m.n}</strong><span>📍 ${m.l}</span>
+                    </div>`;
+          }
+        }).join('');
+      } else {
+        aiResults.innerHTML = `<div class="spa-search-item" style="cursor:default;"><span>No matching results found in this view</span></div>`;
+      }
+    });
+
+    window.selectAISearch = function(type, placeKey, colId) {
+      closeAISearch();
+      if (type === 'place') {
+        handlePlaceClick(null, placeKey);
+      } else if (type === 'college') {
+        if (currentPlaceKey !== placeKey) {
+          handlePlaceClick(null, placeKey);
+        }
+        const colObj = rawCollegesCache.find(c => c.id === colId);
+        if(colObj) {
+           const locStr = colObj.type === 'district' ? `${colObj.district}, ${colObj.stateName}` : colObj.stateName;
+           setTimeout(() => openModal(colObj, locStr), 350);
+        }
+      }
+    };
+  </script>
+</body>
+</html>

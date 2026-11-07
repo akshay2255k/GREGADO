@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Migrate Data to Firebase</title>
+</head>
+<body>
+  <h2>Data Migration</h2>
+  <button id="migrateBtn" style="padding: 10px 20px; font-size: 16px;">Migrate Places Data to Firebase</button>
+  <div id="status" style="margin-top: 20px; font-family: monospace;"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnmgIclnhm2tU-0d0ZYB_5KOxt86WMkD8",
+      authDomain: "grigado.firebaseapp.com",
+      projectId: "grigado",
+      storageBucket: "grigado.firebasestorage.app",
+      messagingSenderId: "808047975194",
+      appId: "1:808047975194:web:f3ddf29d162660f84caaa3",
+      measurementId: "G-50X2GC573R"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // നിന്റെ പഴയ placesData
+    const placesData = {
+      kerala: {
+        name: "Kerala",
+        type: 'district',
+        data: [
+          { district: "Alappuzha", colleges: ["ST MICHAELS COLLEGE CHERTHALA", "NAIPUNYA COLLEGE CHERTHALA", "ST THOMAS ENGINEERING COLLEGE CHENGANNUR"] },
+          { district: "Ernakulam", colleges: ["KMM ARTS & SCIENCE COLLEGE", "COCHIN ARTS & SCIENCE", "JAI BHARATH COLLEGE", "MES COLLEGE ALUVA", "NIRMALA ARTS & SCIENCE", "KMM KUMBALAM", "KMM VAZHAKALA", "KMM CHOWARA ALUVA", "ST MARYS ARTS & SCIENCE PERUMBAVOOR", "THE COCHIN COLLEGE FORT KOCHI", "INDIRA GANDHI COLLEGE", "JAIN DEEMED TO BE UNIVERSITY", "CHINMAYA UNIVERSITY PIRAVOM", "YELDO MAR BASELIOUS COLLEGE YMBC KOTHAMANGALAM", "NAIPUNYA ANGAMALY", "DE- PAUL COLLEGE"] },
+          { district: "Idukki", colleges: ["AL AZHAR COLLEGE THODUPUZHA", "SANTHIGIRI COLLEGE THODUPUZHA"] },
+          { district: "Kasargod", colleges: ["KMCT KASARGOD"] },
+          { district: "Kollam", colleges: ["TRAVANCORE COLLEGE OF ENGINEERING"] },
+          { district: "Kottayam", colleges: ["MES ERUMELY", "MANGALAM COLLEGE ETTUMANOOR", "HINDUSTHAN COLLEGE OF PHARMACY KANJIRAPALLY"] },
+          { district: "Kozhikode", colleges: ["DON BOSCO COLLEGE", "KMCT VADAKARA", "KMCT MUKKAM"] },
+          { district: "Malappuram", colleges: ["AL SHIFA ARTS & SCIENCE", "GEMS ARTS & SCIENCE", "MTM ARTS & SCIENCE PONANI", "KMCT KUTTIPURAM", "KMCT PERITHALMANNA", "ERNAD KNOWLEDGE CITY"] },
+          { district: "Palakkad", colleges: ["MOR IVANION COLLEGE", "AL AMEEN ENGINEERING COLLEGE", "IDEAL ARTS & SCIENCE"] },
+          { district: "Pathanamthitta", colleges: ["MOUNT ZION COLLEGE"] },
+          { district: "Thrissur", colleges: ["ELIMS ARTS & SCIENCE", "ROYAL COLLEGE OF ENGINEERING", "METS GROUP OF INSTITUTIONS", "SCHOENSTATT COLLEGE OF ARTS & SCIENCE", "ICCS COLLEGE OF ENGINEERING"] }
+        ]
+      },
+      bengaluru: {
+        name: "Bengaluru",
+        type: 'alphabet',
+        data: ["YENEPOYA BANGALORE CAMPUS", "BGS & SJB GROUP OF INSTITUTION", "ACHARYA INSTITUTE", "MOOGAMBIGAI COLLEGE OF NURSING ( RRMCH )", "KAMALA KRISHNA ROYAL COLLEGE OF NURSING", "APOLLO APEX COLLEGE", "SRI SIDDHARTHA MEDICAL COLLEGE", "T JOHN COLLEGE", "SAMVAAD BASLP COLLEGE", "KRUPANIDHI DEGREE COLLEGE", "ABBS AUTONOMOUS", "BRINDAVAN COLLEGE", "LITTLE FLOWER GROUP OF INSTITUTION", "RAMAIHA COLLEGE & UNIVERSITY", "SAPTHAGIRI MEDICAL COLLEGE & UNIVERSITY", "RAJARAJESWARI MEDICAL COLLEGE", "SRI DEVARAJ URS UNIVERSITY", "EAST POINT MEDICAL COLLEGE", "S VYASA UNIVERSITY", "AKASH MEDICAL COLLEGE", "DR B R AMBEDKAR MEDICAL COLLEGE", "MVM EDUCATIONAL INSTITUTION"]
+      },
+      manglore: {
+        name: "Manglore",
+        type: 'alphabet',
+        data: ["YENEPOYA UNIVERSITY", "SRINIVAS UNIVERSITY & COLLEGE", "INDIRA", "CANARA VIKAS", "A.J.", "KANACHUR", "UNITY", "INDIANA", "MANGALA", "SHREE DEVI", "NETRA JYOTHI", "ALIYAAH", "MASOOD COLLEGE", "THEJASWINI COLLEGE", "DR MV SHETTY COLLEGE"]
+      },
+      mysore: {
+        name: "Mysore",
+        type: 'alphabet',
+        data: ["SRI CHAMUNDESHWARI MEDICAL COLLEGE", "APOLLO BGS COLLEGE", "CAUVERY COLLEGE", "CHARKOS HOSPITAL", "GOPALA GOWDA HOSPITAL", "ST ALPHONSA GROUP OF INSTITUTE", "SANATH GROUP OF INSTITUTE"]
+      },
+      other: {
+        name: "Other Places",
+        type: 'alphabet',
+        data: ["OTHER TOP INSTITUTIONS AND UNIVERSITIES", "GLOBAL PLACEMENT TIE-UPS", "PAN INDIA ADMISSIONS"]
+      }
+    };
+
+    const migrateBtn = document.getElementById('migrateBtn');
+    const statusDiv = document.getElementById('status');
+
+    function log(msg) {
+      statusDiv.innerHTML += `<div>${msg}</div>`;
+      console.log(msg);
+    }
+
+    migrateBtn.addEventListener('click', async () => {
+      migrateBtn.disabled = true;
+      log("Starting migration...");
+      
+      const colRef = collection(db, "colleges");
+      
+      // ആദ്യം ഡാറ്റാബേസിൽ ഡാറ്റ ഉണ്ടോ എന്ന് നോക്കാം, ഡ്യൂപ്ലിക്കേറ്റ് വരാതിരിക്കാൻ
+      const existingDocs = await getDocs(colRef);
+      if(!existingDocs.empty) {
+         log("Data already exists in 'colleges' collection. Migration skipped to avoid duplicates.");
+         return;
+      }
+
+      for (const stateKey in placesData) {
+        const stateObj = placesData[stateKey];
+        const stateName = stateObj.name;
+        
+        if (stateObj.type === 'district') {
+          // കേരളം പോലെയുള്ളവ
+          for (const distObj of stateObj.data) {
+            const districtName = distObj.district;
+            for (const colName of distObj.colleges) {
+              await addDoc(colRef, {
+                stateKey: stateKey,
+                stateName: stateName,
+                district: districtName,
+                name: colName,
+                type: 'district',
+                // Default placeholders for now
+                description: "Expert guidance and comprehensive learning atmosphere for higher education with state-of-the-art laboratory and campus facilities. Equipped with industry-oriented Add-on certifications, live projects, and dedicated placement support through Gregado's network.",
+                images: [],
+                pdfUrl: "" 
+              });
+              log(`Added: ${colName} (${districtName}, ${stateName})`);
+            }
+          }
+        } else {
+          // ബാംഗ്ലൂർ പോലെയുള്ളവ (ജില്ല ഇല്ലാത്തവ)
+          for (const colName of stateObj.data) {
+             await addDoc(colRef, {
+                stateKey: stateKey,
+                stateName: stateName,
+                district: "", // No district
+                name: colName,
+                type: 'alphabet',
+                description: "Expert guidance and comprehensive learning atmosphere for higher education with state-of-the-art laboratory and campus facilities. Equipped with industry-oriented Add-on certifications, live projects, and dedicated placement support through Gregado's network.",
+                images: [],
+                pdfUrl: ""
+              });
+              log(`Added: ${colName} (${stateName})`);
+          }
+        }
+      }
+      
+      log("Migration Complete! 🎉");
+    });
+  </script>
+</body>
+</html>

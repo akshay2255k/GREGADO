@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="icon" type="image/png" href="../gallary/assets/logo.png" />
+  <title>Gregado — Welcome</title>
+  <style>
+    :root {
+      --blue: #0d45b5;
+      --navy: #071d59;
+      --ink: #172038;
+      --track: #d6ddec;
+      --splash-duration: 3500ms;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; }
+    body {
+      min-height: 100svh;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background: #f6f8fc;
+    }
+
+    /* Full-screen splash layout */
+    .splash {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100dvh;
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      justify-items: center;
+      background: #ffffff;
+      padding: 24px;
+      z-index: 9999;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 600ms ease, visibility 600ms ease;
+    }
+
+    .splash.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .brand {
+      grid-row: 2;
+      width: min(50vw, 340px);
+      min-width: 200px;
+      transform: translateY(-8vh);
+      animation: brandEntry 1000ms cubic-bezier(.2,.8,.2,1) both;
+    }
+    .brand svg { display: block; width: 100%; height: auto; }
+    .brand-mark { transform-origin: 50% 55%; animation: markFloat 2.6s ease-in-out infinite; }
+    .brand-word {
+      font-size: 64px;
+      font-weight: 800;
+      font-style: italic;
+      letter-spacing: -2px;
+      fill: var(--navy);
+    }
+
+    .loading {
+      grid-row: 3;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-top: 5vh;
+      animation: loaderEntry 700ms 300ms ease both;
+    }
+
+    .spinner {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, var(--blue) 0 25%, var(--track) 25% 75%, transparent 75% 100%);
+      -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+      mask: radial-gradient(farthest-side, transparent calc(100% - 6px), #000 0);
+      animation: spin 1s linear infinite;
+    }
+
+    .loading-text {
+      color: var(--ink);
+      font-size: 1.05rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes brandEntry {
+      from { opacity: 0; transform: translateY(-4vh) scale(0.95); filter: blur(4px); }
+      to { opacity: 1; transform: translateY(-8vh) scale(1); filter: blur(0); }
+    }
+    @keyframes loaderEntry {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes markFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="splash" id="splashScreen">
+    <div class="brand" aria-label="Gregado">
+      <svg viewBox="0 0 430 250" role="img">
+        <defs>
+          <linearGradient id="brandGradient" x1="70" y1="190" x2="335" y2="35" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#061851"/>
+            <stop offset=".55" stop-color="#0d47c4"/>
+            <stop offset="1" stop-color="#1387f7"/>
+          </linearGradient>
+        </defs>
+        <g class="brand-mark" fill="url(#brandGradient)">
+          <path d="M78 125c0-53 46-93 107-93 24 0 46 6 63 17l-30 23c-11-5-24-8-38-8-36 0-63 23-63 56 0 28 20 48 51 48 18 0 34-6 44-16l-53 0 37-31h103l-53 46c-24 22-57 34-92 34-61 0-106-30-106-76z"/>
+          <path d="M195 121 354 45 252 138z"/>
+          <path d="m180 62 45-20 45 20-45 20-45-20zm14 12 31 14 31-14v17c-17 12-45 12-62 0V74z"/>
+          <rect x="269" y="62" width="4" height="25" rx="2"/>
+          <circle cx="271" cy="89" r="5"/>
+        </g>
+        <text class="brand-word" x="215" y="235" text-anchor="middle">Gregado</text>
+      </svg>
+    </div>
+
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading<span id="dots"></span></div>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const splash = document.getElementById('splashScreen');
+      const dots = document.getElementById('dots');
+      const splashDuration = 3200; // Splash screen display time (ms)
+      const startTime = performance.now();
+      let dotCount = 0;
+
+      // Loading dots animation
+      const dotInterval = setInterval(() => {
+        dotCount = (dotCount + 1) % 4;
+        dots.textContent = '.'.repeat(dotCount);
+      }, 400);
+
+      // Routing logic based on login status & user role
+      function getRedirectUrl() {
+        const isLoggedIn = localStorage.getItem('isLoggedIn');
+        const userRole = localStorage.getItem('userRole'); // Expected: 'admin' or 'user'
+
+        if (isLoggedIn === 'true') {
+          if (userRole === 'admin') {
+            return 'templates/admin.html';
+          }
+          return 'templates/home.html';
+        } else {
+          // User login cheythittillel login page-lekk redirect cheyyum
+          // Direct guest access aanu vendathenkil 'home.html' enn maattaavunnathaann
+          return 'templates/login.html';
+        }
+      }
+
+      function handleRedirect() {
+        const elapsed = performance.now() - startTime;
+        const remaining = Math.max(0, splashDuration - elapsed);
+
+        setTimeout(() => {
+          clearInterval(dotInterval);
+          splash.classList.add('fade-out');
+
+          const destination = getRedirectUrl();
+          setTimeout(() => {
+            window.location.href = destination;
+          }, 500);
+        }, remaining);
+      }
+
+      if (document.readyState === 'complete') {
+        handleRedirect();
+      } else {
+        window.addEventListener('load', handleRedirect, { once: true });
+      }
+    })();
+  </script>
+</body>
+</html>

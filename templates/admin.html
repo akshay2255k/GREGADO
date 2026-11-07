@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gregado | Super Admin Panel</title>
+  <link rel="icon" href="../gallary/assets/logo.png" type="image/png">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --primary-glow: rgba(59, 130, 246, 0.4);
+      --danger: #ef4444;
+      --success: #10b981;
+      --glass-bg: rgba(18, 22, 34, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text: #f3f4f6;
+      --text-dim: #9ca3af;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+    body {
+      background-color: #07090e;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Vanta Background Container */
+    #vanta-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100vh;
+      z-index: -1;
+    }
+
+    /* Header */
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 3rem;
+      background: rgba(7, 9, 14, 0.6);
+      backdrop-filter: blur(15px);
+      border-bottom: 1px solid var(--glass-border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand img { width: 35px; height: 35px; }
+    .brand span {
+      font-family: 'Manrope', sans-serif;
+      font-size: 1.4rem; font-weight: 800;
+      color: #fff; letter-spacing: 0.5px;
+    }
+    .badge {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+      padding: 3px 8px; border-radius: 20px;
+      font-size: 0.7rem; font-weight: 700;
+      margin-left: 8px;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 20px; }
+
+    .nav-links { display: flex; gap: 10px; }
+    .nav-btn {
+      background: transparent; border: none; color: var(--text-dim);
+      font-weight: 600; padding: 8px 16px; border-radius: 8px;
+      cursor: pointer; transition: 0.2s;
+    }
+    .nav-btn.active { background: var(--primary); color: #fff; }
+
+    .live-status {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.05);
+      padding: 6px 12px; border-radius: 50px;
+      border: 1px solid var(--glass-border);
+      font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 10px var(--success);
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .logout-btn {
+      background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5; padding: 8px 16px; border-radius: 8px;
+      font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .logout-btn:hover { background: var(--danger); color: #fff; }
+
+    /* Layout */
+    .container {
+      max-width: 1000px; margin: 2rem auto; padding: 0 2rem;
+    }
+
+    .section { display: none; animation: fadeUp 0.4s ease; }
+    .section.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Glass Panels */
+    .glass-panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(25px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+    
+    .panel-title {
+      font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800;
+      color: #fff; margin-bottom: 0.5rem;
+    }
+    .panel-sub { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    /* Forms */
+    .form-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    
+    label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; }
+    input {
+      width: 100%; padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px; color: #fff;
+      font-size: 0.95rem; outline: none; transition: 0.2s;
+    }
+    input:focus {
+      border-color: var(--primary);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+
+    .btn-submit {
+      background: var(--primary); color: #fff; border: none;
+      padding: 12px 28px; border-radius: 10px; font-weight: 700;
+      font-size: 0.95rem; cursor: pointer; transition: 0.2s;
+      box-shadow: 0 5px 15px var(--primary-glow);
+      height: 45px;
+    }
+    .btn-submit:hover { transform: translateY(-2px); background: #2563eb; }
+
+    /* Stats Card (Active Users) */
+    .stats-card {
+      text-align: center;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 20px 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.15);
+    }
+    .stats-number {
+      font-size: 2.8rem; font-weight: 800; color: #34d399;
+      line-height: 1; font-family: 'Manrope', sans-serif;
+    }
+    .stats-label {
+      font-size: 0.85rem; font-weight: 600; color: #cbd5e1;
+      margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;
+    }
+
+    /* Tables & Lists */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px 15px; color: var(--text-dim); font-size: 0.85rem; font-weight: 600; border-bottom: 1px solid var(--glass-border); }
+    td { padding: 15px; color: #e2e8f0; font-size: 0.95rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    .action-btn {
+      padding: 6px 12px; border-radius: 6px; border: none;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn-del { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .btn-del:hover { background: var(--danger); color: #fff; }
+
+    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; }
+    .status-online { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .status-offline { background: rgba(255,255,255,0.1); color: var(--text-dim); }
+
+    #toast {
+      position: fixed; bottom: 30px; right: 30px;
+      background: rgba(15, 23, 42, 0.95); border: 1px solid var(--glass-border);
+      padding: 15px 25px; border-radius: 12px; color: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; z-index: 1000;
+    }
+    
+    @media (max-width: 860px) {
+      .admin-header { padding: 1rem; flex-direction: column; gap: 1rem; }
+      .container { padding: 1rem; }
+      #userForm { flex-direction: column; align-items: stretch !important; }
+      .btn-submit { width: 100%; margin-top: 10px; }
+      .header-row { flex-direction: column; gap: 1.5rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background Effect -->
+  <div id="vanta-bg"></div>
+
+  <!-- Header -->
+  <header class="admin-header">
+    <a href="home.html" class="brand">
+      <img src="../gallary/assets/logo.png" alt="Gregado">
+      <span>Gregado <span class="badge">Admin</span></span>
+    </a>
+    <div class="header-right">
+      <div class="nav-links">
+        <button class="nav-btn active" onclick="switchTab('users')">Users</button>
+      </div>
+      <div class="live-status" onclick="switchTab('logins')">
+        <div class="status-dot"></div> <span id="activeCount">0</span> Online
+      </div>
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- 1. USERS SECTION -->
+    <section id="users" class="section active">
+      <div class="glass-panel">
+        <h2 class="panel-title">Grant Website Access</h2>
+        <p class="panel-sub">Add user emails here. No passwords needed. Only these emails can login.</p>
+        <form id="userForm" style="display:flex; gap:15px; align-items:flex-end;">
+          <div class="form-group" style="flex:1;">
+            <label>Student Email Address</label>
+            <input type="email" id="newUserEmail" placeholder="student@example.com" required>
+          </div>
+          <button type="submit" class="btn-submit">Authorize User</button>
+        </form>
+      </div>
+
+      <div class="glass-panel">
+        <h2 class="panel-title">Authorized Users</h2>
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Email Address</th><th>Added On</th><th>Action</th></tr></thead>
+            <tbody id="usersList"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. LIVE LOGINS SECTION -->
+    <section id="logins" class="section">
+      <!-- Special Active Counter Box -->
+      <div class="glass-panel" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;" class="header-row">
+        <div>
+          <h2 class="panel-title">Live Traffic Monitor</h2>
+          <p class="panel-sub" style="margin-bottom: 0;">Real-time unique active users tracking.</p>
+        </div>
+        <div class="stats-card">
+          <div class="stats-number" id="uniqueActiveCountText">0</div>
+          <div class="stats-label">Active Now</div>
+        </div>
+      </div>
+
+      <!-- Unique Users Table -->
+      <div class="glass-panel">
+        <div class="table-container">
+          <table>
+            <thead><tr><th>Student Email</th><th>Latest Login</th><th>Status</th></tr></thead>
+            <tbody id="liveLoginsList"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast"></div>
+
+  <!-- Vanta.js Background Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
+  <script>
+    // Vanta Birds with Touch & Hover Enalbed
+    VANTA.BIRDS({
+      el: "#vanta-bg",
+      mouseControls: true,  // Enabled mouse interaction
+      touchControls: true,  // Enabled touch interaction
+      gyroControls: true,   // Enabled device rotation interaction
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      backgroundColor: 0x07090e,
+      color1: 0xff0000,
+      color2: 0x00d1ff,
+      birdSize: 2.30,
+      wingSpan: 33.00,
+      speedLimit: 2.00,
+      separation: 54.00,
+      alignment: 31.00,
+      cohesion: 54.00,
+      quantity: 5.00
+    })
+  </script>
+
+  <!-- Firebase Integration -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDnmgIclnhm2tU-0d0ZYB_5KOxt86WMkD8",
+      authDomain: "grigado.firebaseapp.com",
+      projectId: "grigado",
+      storageBucket: "grigado.firebasestorage.app",
+      messagingSenderId: "808047975194",
+      appId: "1:808047975194:web:f3ddf29d162660f84caaa3"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Admin Security Check
+    const adminEmail = localStorage.getItem('userEmail');
+    if (localStorage.getItem('userRole') !== 'admin' || (adminEmail !== 'anujithsabu1234@gmail.com' && adminEmail !== 'apzmix@gmail.com')) {
+      window.location.href = "login.html";
+    }
+
+    document.getElementById('logoutBtn').onclick = () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    };
+
+    // UI Helpers
+    window.switchTab = (tabId) => {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if(event && event.target.classList.contains('nav-btn')){
+         event.target.classList.add('active');
+      }
+    };
+
+    const showToast = (msg, isError = false) => {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.borderLeft = `4px solid ${isError ? 'var(--danger)' : 'var(--success)'}`;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 3000);
+    };
+
+    // --- 1. USER MANAGEMENT ---
+    document.getElementById('userForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('newUserEmail').value.toLowerCase().trim();
+      await addDoc(collection(db, "allowedUsers"), { email, addedAt: serverTimestamp() });
+      showToast('User authorized successfully!');
+      e.target.reset();
+    };
+
+    onSnapshot(collection(db, "allowedUsers"), (snap) => {
+      const tbody = document.getElementById('usersList');
+      tbody.innerHTML = '';
+      snap.forEach(d => {
+        const u = d.data();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${u.email}</td><td>${u.addedAt ? new Date(u.addedAt.seconds * 1000).toLocaleDateString() : 'Just now'}</td>
+                        <td><button class="action-btn btn-del">Revoke</button></td>`;
+        tr.querySelector('.btn-del').onclick = () => {
+            if(confirm('Revoke access for this user?')) deleteDoc(doc(db, "allowedUsers", d.id));
+        };
+        tbody.appendChild(tr);
+      });
+    });
+
+    // --- 2. LIVE UNIQUE LOGINS TRACKING ---
+    onSnapshot(query(collection(db, "loginLogs"), orderBy("timestamp", "desc")), (snap) => {
+      const tbody = document.getElementById('liveLoginsList');
+      tbody.innerHTML = '';
+      let activeCount = 0;
+      
+      // Calculate time 10 minutes ago
+      const tenMinsAgo = new Date();
+      tenMinsAgo.setMinutes(tenMinsAgo.getMinutes() - 10);
+
+      // We use a Map to keep only the LATEST login info per unique email
+      const uniqueUsers = new Map();
+
+      snap.forEach(d => {
+        const log = d.data();
+        if(!log.timestamp || !log.email) return;
+        
+        // Ensure email isn't already tracked (since we ordered by desc, the first one we see is the latest)
+        if (!uniqueUsers.has(log.email)) {
+          const logTime = new Date(log.timestamp.seconds * 1000);
+          const isActive = logTime > tenMinsAgo;
+          
+          if(isActive) activeCount++;
+          
+          uniqueUsers.set(log.email, {
+            time: logTime,
+            isActive: isActive
+          });
+        }
+      });
+
+      // Render the unique users in the table
+      uniqueUsers.forEach((data, email) => {
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${email}</strong></td>
+            <td>${data.time.toLocaleTimeString()}</td>
+            <td><span class="status-badge ${data.isActive ? 'status-online' : 'status-offline'}">
+              ${data.isActive ? 'Online Now' : 'Offline'}
+            </span></td>
+          </tr>`;
+      });
+
+      // Update counters in Header and in the Stats Card
+      document.getElementById('activeCount').textContent = activeCount;
+      document.getElementById('uniqueActiveCountText').textContent = activeCount;
+    });
+
+  </script>
+</body>
+</html>
