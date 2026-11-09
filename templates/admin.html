@@ -16,6 +16,7 @@
       --primary-glow: rgba(59, 130, 246, 0.4);
       --danger: #ef4444;
       --success: #10b981;
+      --warning: #f59e0b;
       --glass-bg: rgba(18, 22, 34, 0.4);
       --glass-border: rgba(255, 255, 255, 0.1);
       --text: #f3f4f6;
@@ -68,7 +69,7 @@
       margin-left: 8px;
     }
 
-    .header-right { display: flex; align-items: center; gap: 20px; }
+    .header-right { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 
     .nav-links { display: flex; gap: 10px; }
     .nav-btn {
@@ -131,21 +132,23 @@
     .panel-sub { color: var(--text-dim); font-size: 0.9rem; margin-bottom: 2rem; }
 
     /* Forms */
-    .form-group { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .form-group { flex: 1; display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.2rem; }
     
     label { font-size: 0.85rem; font-weight: 600; color: #cbd5e1; }
-    input {
+    input, select, textarea {
       width: 100%; padding: 12px 16px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--glass-border);
       border-radius: 12px; color: #fff;
       font-size: 0.95rem; outline: none; transition: 0.2s;
     }
-    input:focus {
+    textarea { resize: vertical; min-height: 100px; }
+    input:focus, select:focus, textarea:focus {
       border-color: var(--primary);
       background: rgba(255, 255, 255, 0.08);
       box-shadow: 0 0 15px var(--primary-glow);
     }
+    select option { background-color: #0f172a; color: #fff; }
 
     .btn-submit {
       background: var(--primary); color: #fff; border: none;
@@ -155,6 +158,52 @@
       height: 45px;
     }
     .btn-submit:hover { transform: translateY(-2px); background: #2563eb; }
+
+    .btn-delete {
+      background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5; padding: 12px 28px; border-radius: 10px; font-weight: 700;
+      font-size: 0.95rem; cursor: pointer; transition: 0.2s; height: 45px;
+    }
+    .btn-delete:hover { background: var(--danger); color: #fff; }
+
+    .btn-upload {
+      background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px dashed rgba(255, 255, 255, 0.3);
+      padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: 0.2s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-upload:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
+
+    /* Media Preview Cards */
+    .media-preview-container {
+      display: flex; gap: 12px; flex-wrap: wrap; margin-top: 15px;
+    }
+    .media-card {
+      position: relative; width: 100px; height: 100px; border-radius: 10px; overflow: hidden;
+      border: 2px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .media-card img, .media-card video { width: 100%; height: 100%; object-fit: cover; }
+    .media-remove {
+      position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.95); border: none;
+      color: white; width: 24px; height: 24px; border-radius: 50%; font-size: 14px; font-weight: bold;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .media-remove:hover { transform: scale(1.1); background: #ef4444; }
+    
+    .pdf-preview {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; 
+      background: rgba(59, 130, 246, 0.15); padding: 12px 16px; border-radius: 10px; 
+      border: 1px solid rgba(59, 130, 246, 0.4); margin-top: 15px;
+    }
+    .pdf-preview a { color: #93c5fd; font-weight: 600; font-size: 0.9rem; text-decoration: none; word-break: break-all; }
+    .pdf-preview a:hover { text-decoration: underline; color: #fff; }
+
+    /* Switch Tabs in Content Manager */
+    .cms-tabs { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; }
+    .cms-tab-btn { background: none; border: none; color: var(--text-dim); font-weight: 700; padding: 8px 16px; cursor: pointer; border-radius: 8px; transition: 0.2s;}
+    .cms-tab-btn.active { color: #fff; background: rgba(255,255,255,0.1); }
+
+    .upload-status { color: #34d399; font-size: 0.85rem; margin-top: 8px; font-weight: 600; }
+    .upload-error { color: #ef4444; font-size: 0.85rem; margin-top: 8px; font-weight: 600; }
 
     /* Stats Card (Active Users) */
     .stats-card {
@@ -199,12 +248,45 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: none; z-index: 1000;
     }
     
+    /* FEATURED (STAR) TOGGLE SWITCH STYLES */
+    .featured-toggle-container {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.4);
+      padding: 15px 20px; border-radius: 12px; margin-bottom: 20px;
+      cursor: pointer; transition: 0.3s;
+    }
+    .featured-toggle-container:hover {
+      background: rgba(245, 158, 11, 0.2);
+    }
+    .featured-info { display: flex; flex-direction: column; gap: 4px; }
+    .featured-info strong { color: #fcd34d; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+    .featured-info span { color: #9ca3af; font-size: 0.85rem; }
+    
+    .star-icon {
+      font-size: 2rem; color: #4b5563;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      user-select: none;
+    }
+    .featured-toggle-container.is-featured {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: #f59e0b;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.3);
+    }
+    .featured-toggle-container.is-featured .star-icon {
+      color: #fbbf24;
+      text-shadow: 0 0 15px #f59e0b;
+      transform: scale(1.2) rotate(360deg);
+    }
+    #isFeaturedCheck { display: none; }
+
     @media (max-width: 860px) {
       .admin-header { padding: 1rem; flex-direction: column; gap: 1rem; }
       .container { padding: 1rem; }
       #userForm { flex-direction: column; align-items: stretch !important; }
       .btn-submit { width: 100%; margin-top: 10px; }
+      .form-row { flex-direction: column; gap: 0 !important; }
       .header-row { flex-direction: column; gap: 1.5rem; text-align: center; }
+      .featured-toggle-container { flex-direction: column; text-align: center; gap: 15px; }
     }
   </style>
 </head>
@@ -221,9 +303,10 @@
     </a>
     <div class="header-right">
       <div class="nav-links">
-        <button class="nav-btn active" onclick="switchTab('users')">Users</button>
+        <button class="nav-btn" onclick="switchMainTab('users')">Users</button>
+        <button class="nav-btn active" onclick="switchMainTab('content')">Content Manager</button>
       </div>
-      <div class="live-status" onclick="switchTab('logins')">
+      <div class="live-status" onclick="switchMainTab('logins')">
         <div class="status-dot"></div> <span id="activeCount">0</span> Online
       </div>
       <button class="logout-btn" id="logoutBtn">Logout</button>
@@ -233,19 +316,18 @@
   <main class="container">
 
     <!-- 1. USERS SECTION -->
-    <section id="users" class="section active">
+    <section id="users" class="section">
       <div class="glass-panel">
         <h2 class="panel-title">Grant Website Access</h2>
-        <p class="panel-sub">Add user emails here. No passwords needed. Only these emails can login.</p>
+        <p class="panel-sub">Add user emails here. No passwords needed.</p>
         <form id="userForm" style="display:flex; gap:15px; align-items:flex-end;">
-          <div class="form-group" style="flex:1;">
+          <div class="form-group" style="flex:1; margin-bottom:0;">
             <label>Student Email Address</label>
             <input type="email" id="newUserEmail" placeholder="student@example.com" required>
           </div>
           <button type="submit" class="btn-submit">Authorize User</button>
         </form>
       </div>
-
       <div class="glass-panel">
         <h2 class="panel-title">Authorized Users</h2>
         <div class="table-container">
@@ -257,9 +339,137 @@
       </div>
     </section>
 
-    <!-- 2. LIVE LOGINS SECTION -->
+    <!-- 2. CONTENT MANAGER SECTION -->
+    <section id="content" class="section active">
+      
+      <div class="glass-panel">
+        <div class="cms-tabs">
+          <button class="cms-tab-btn active" onclick="switchCmsMode('create')">➕ Create New College</button>
+          <button class="cms-tab-btn" onclick="switchCmsMode('edit')">✏️ Edit / Delete Existing</button>
+        </div>
+
+        <h2 class="panel-title" id="cmsTitle">Create New College</h2>
+        <p class="panel-sub" id="cmsSub">Add a new institution to the website.</p>
+
+        <form id="cmsForm">
+          <input type="hidden" id="docId" value="">
+
+          <!-- Search existing colleges (Only visible in Edit mode) -->
+          <div id="editSelectionArea" style="display: none; background: rgba(59, 130, 246, 0.08); padding: 20px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); margin-bottom: 25px;">
+            <label style="color:#60a5fa; margin-bottom: 12px; display:block; font-size:1rem;">🔍 Select College to Edit or Delete</label>
+            <div class="form-row" style="display: flex; gap: 15px;">
+              <div class="form-group" style="margin-bottom:0;">
+                <select id="editStateSelect"><option value="">-- Select State --</option></select>
+              </div>
+              <div class="form-group" id="editDistrictGroup" style="display: none; margin-bottom:0;">
+                <select id="editDistrictSelect"><option value="">-- Select District --</option></select>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <select id="editCollegeSelect" disabled><option value="">-- Select College --</option></select>
+              </div>
+            </div>
+            <small style="color:var(--text-dim); display:block; margin-top:10px;">Select a college above, then modify its details in the form below.</small>
+          </div>
+
+          <!-- Main Form Fields -->
+          <div class="form-row" style="display: flex; gap: 15px;">
+            <div class="form-group">
+              <label>State / Region</label>
+              <select id="stateSelect" required>
+                <option value="">-- Select State --</option>
+                <option value="kerala" data-type="district">Kerala</option>
+                <option value="bengaluru" data-type="alphabet">Bengaluru</option>
+                <option value="manglore" data-type="alphabet">Manglore</option>
+                <option value="mysore" data-type="alphabet">Mysore</option>
+                <option value="other" data-type="alphabet">Other Places</option>
+              </select>
+            </div>
+            
+            <div class="form-group" id="districtGroup" style="display: none;">
+              <label>District (Kerala only)</label>
+              <select id="districtSelect">
+                <option value="">-- Select District --</option>
+                <option value="Alappuzha">Alappuzha</option>
+                <option value="Ernakulam">Ernakulam</option>
+                <option value="Idukki">Idukki</option>
+                <option value="Kannur">Kannur</option>
+                <option value="Kasaragod">Kasaragod</option>
+                <option value="Kollam">Kollam</option>
+                <option value="Kottayam">Kottayam</option>
+                <option value="Kozhikode">Kozhikode</option>
+                <option value="Malappuram">Malappuram</option>
+                <option value="Palakkad">Palakkad</option>
+                <option value="Pathanamthitta">Pathanamthitta</option>
+                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                <option value="Thrissur">Thrissur</option>
+                <option value="Wayanad">Wayanad</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>College Name</label>
+            <input type="text" id="collegeName" placeholder="e.g. JAI BHARATH COLLEGE" required>
+          </div>
+
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="collegeDesc" placeholder="Enter details about courses, placements, etc." required></textarea>
+          </div>
+
+          <!-- Direct Fetch API Uploads -->
+          <div style="background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px dashed rgba(255,255,255,0.1);">
+            
+            <div style="margin-bottom: 25px;">
+              <label style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>College Images / Videos</span>
+              </label>
+              <input type="file" id="imageInput" multiple accept="image/*,video/*" style="display: none;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('imageInput').click()">🖼️ Upload New Image/Video</button>
+              <div id="imageStatus" class="upload-status"></div>
+              
+              <div id="imagePreviewContainer" class="media-preview-container">
+                 <span style="color:#9ca3af; font-size:0.85rem; margin-top:5px; display:block;">No images currently uploaded.</span>
+              </div>
+              <input type="hidden" id="uploadedImages" value="[]"> 
+            </div>
+
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top:20px;">
+              <label style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span>Fee Structure / Syllabus (PDF)</span>
+              </label>
+              <input type="file" id="pdfInput" accept="application/pdf" style="display: none;">
+              <button type="button" class="btn-upload" onclick="document.getElementById('pdfInput').click()">📄 Upload New PDF</button>
+              <div id="pdfStatus" class="upload-status"></div>
+              
+              <div id="pdfPreviewContainer">
+                <span style="color:#9ca3af; font-size:0.85rem; margin-top:10px; display:block;">No PDF currently uploaded.</span>
+              </div>
+              <input type="hidden" id="uploadedPdf" value="">
+            </div>
+          </div>
+          
+          <!-- FEATURED (STAR) TOGGLE -->
+          <div class="featured-toggle-container" id="featuredToggleWrapper" onclick="toggleFeaturedStatus()">
+            <div class="featured-info">
+              <strong>Mark as Featured Offer</strong>
+              <span>If selected, this college will appear in the "★ Offers" menu on the home page.</span>
+            </div>
+            <div class="star-icon" id="starIcon">★</div>
+            <input type="checkbox" id="isFeaturedCheck">
+          </div>
+
+          <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button type="submit" class="btn-submit" id="saveBtn">Publish College</button>
+            <button type="button" class="btn-delete" id="deleteBtn" style="display: none;">🗑️ Delete College</button>
+          </div>
+
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. LIVE LOGINS SECTION -->
     <section id="logins" class="section">
-      <!-- Special Active Counter Box -->
       <div class="glass-panel" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;" class="header-row">
         <div>
           <h2 class="panel-title">Live Traffic Monitor</h2>
@@ -270,8 +480,6 @@
           <div class="stats-label">Active Now</div>
         </div>
       </div>
-
-      <!-- Unique Users Table -->
       <div class="glass-panel">
         <div class="table-container">
           <table>
@@ -283,42 +491,26 @@
     </section>
 
   </main>
-
   <div id="toast"></div>
 
-  <!-- Vanta.js Background Scripts -->
+  <!-- Vanta.js Background -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.birds.min.js"></script>
   <script>
-    // Vanta Birds with Touch & Hover Enalbed
     VANTA.BIRDS({
-      el: "#vanta-bg",
-      mouseControls: true,  // Enabled mouse interaction
-      touchControls: true,  // Enabled touch interaction
-      gyroControls: true,   // Enabled device rotation interaction
-      minHeight: 200.00,
-      minWidth: 200.00,
-      scale: 1.00,
-      scaleMobile: 1.00,
-      backgroundColor: 0x07090e,
-      color1: 0xff0000,
-      color2: 0x00d1ff,
-      birdSize: 2.30,
-      wingSpan: 33.00,
-      speedLimit: 2.00,
-      separation: 54.00,
-      alignment: 31.00,
-      cohesion: 54.00,
-      quantity: 5.00
+      el: "#vanta-bg", mouseControls: true, touchControls: true, gyroControls: true,
+      minHeight: 200.00, minWidth: 200.00, scale: 1.00, scaleMobile: 1.00,
+      backgroundColor: 0x07090e, color1: 0xff0000, color2: 0x00d1ff,
+      birdSize: 2.30, wingSpan: 33.00, speedLimit: 2.00,
+      separation: 54.00, alignment: 31.00, cohesion: 54.00, quantity: 5.00
     })
   </script>
 
-  <!-- Firebase Integration -->
+  <!-- Firebase & CMS Logic -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getFirestore, collection, addDoc, doc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, serverTimestamp, query, orderBy, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDnmgIclnhm2tU-0d0ZYB_5KOxt86WMkD8",
       authDomain: "grigado.firebaseapp.com",
@@ -327,37 +519,51 @@
       messagingSenderId: "808047975194",
       appId: "1:808047975194:web:f3ddf29d162660f84caaa3"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Admin Security Check
-    const adminEmail = localStorage.getItem('userEmail');
-    if (localStorage.getItem('userRole') !== 'admin' || (adminEmail !== 'anujithsabu1234@gmail.com' && adminEmail !== 'apzmix@gmail.com')) {
-      window.location.href = "login.html";
-    }
+    const CLOUD_NAME = "nod7xsqj";
+    const UPLOAD_PRESET = "gregado";
+    const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
-    document.getElementById('logoutBtn').onclick = () => {
-      localStorage.clear();
-      window.location.href = "login.html";
-    };
-
-    // UI Helpers
-    window.switchTab = (tabId) => {
+    // UI & Auth Helpers
+    document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = "login.html"; };
+    window.switchMainTab = (tabId) => {
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-header .nav-btn').forEach(b => b.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
-      if(event && event.target.classList.contains('nav-btn')){
-         event.target.classList.add('active');
-      }
+      if(event && event.target.classList.contains('nav-btn')) event.target.classList.add('active');
     };
-
     const showToast = (msg, isError = false) => {
       const t = document.getElementById('toast');
       t.textContent = msg;
       t.style.borderLeft = `4px solid ${isError ? 'var(--danger)' : 'var(--success)'}`;
       t.style.display = 'block';
       setTimeout(() => t.style.display = 'none', 3000);
+    };
+
+    // --- FEATURED TOGGLE LOGIC (WITH EDIT MODE PROTECTION) ---
+    window.toggleFeaturedStatus = (forceState = null) => {
+      // Security check: If we are in 'edit' mode, but haven't selected a college yet (docId is empty), DON'T allow toggling!
+      if (currentCmsMode === 'edit' && !document.getElementById('docId').value && forceState === null) {
+         showToast('Please select a college to edit first before marking it as Featured.', true);
+         return;
+      }
+
+      const wrapper = document.getElementById('featuredToggleWrapper');
+      const checkbox = document.getElementById('isFeaturedCheck');
+      
+      if (forceState !== null) {
+         checkbox.checked = forceState;
+      } else {
+         checkbox.checked = !checkbox.checked;
+      }
+
+      if (checkbox.checked) {
+         wrapper.classList.add('is-featured');
+      } else {
+         wrapper.classList.remove('is-featured');
+      }
     };
 
     // --- 1. USER MANAGEMENT ---
@@ -389,33 +595,21 @@
       const tbody = document.getElementById('liveLoginsList');
       tbody.innerHTML = '';
       let activeCount = 0;
-      
-      // Calculate time 10 minutes ago
       const tenMinsAgo = new Date();
       tenMinsAgo.setMinutes(tenMinsAgo.getMinutes() - 10);
-
-      // We use a Map to keep only the LATEST login info per unique email
       const uniqueUsers = new Map();
 
       snap.forEach(d => {
         const log = d.data();
         if(!log.timestamp || !log.email) return;
-        
-        // Ensure email isn't already tracked (since we ordered by desc, the first one we see is the latest)
         if (!uniqueUsers.has(log.email)) {
           const logTime = new Date(log.timestamp.seconds * 1000);
           const isActive = logTime > tenMinsAgo;
-          
           if(isActive) activeCount++;
-          
-          uniqueUsers.set(log.email, {
-            time: logTime,
-            isActive: isActive
-          });
+          uniqueUsers.set(log.email, { time: logTime, isActive: isActive });
         }
       });
 
-      // Render the unique users in the table
       uniqueUsers.forEach((data, email) => {
         tbody.innerHTML += `
           <tr>
@@ -426,10 +620,322 @@
             </span></td>
           </tr>`;
       });
-
-      // Update counters in Header and in the Stats Card
       document.getElementById('activeCount').textContent = activeCount;
       document.getElementById('uniqueActiveCountText').textContent = activeCount;
+    });
+
+    // ==========================================
+    // CMS LOGIC
+    // ==========================================
+    let currentCmsMode = 'create';
+    let allCollegesCache = []; 
+
+    const form = document.getElementById('cmsForm');
+    const stateSelect = document.getElementById('stateSelect');
+    const districtSelect = document.getElementById('districtSelect');
+    const districtGroup = document.getElementById('districtGroup');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const pdfPreviewContainer = document.getElementById('pdfPreviewContainer');
+    
+    const editSelectionArea = document.getElementById('editSelectionArea');
+    const editStateSelect = document.getElementById('editStateSelect');
+    const editDistrictSelect = document.getElementById('editDistrictSelect');
+    const editDistrictGroup = document.getElementById('editDistrictGroup');
+    const editCollegeSelect = document.getElementById('editCollegeSelect');
+
+    stateSelect.addEventListener('change', () => {
+      const selectedOption = stateSelect.options[stateSelect.selectedIndex];
+      if (selectedOption && selectedOption.dataset.type === 'district') {
+        districtGroup.style.display = 'block';
+        districtSelect.required = true;
+      } else {
+        districtGroup.style.display = 'none';
+        districtSelect.required = false;
+        districtSelect.value = '';
+      }
+    });
+
+    window.switchCmsMode = (mode) => {
+      currentCmsMode = mode;
+      document.querySelectorAll('.cms-tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      form.reset();
+      document.getElementById('docId').value = '';
+      stateSelect.dispatchEvent(new Event('change'));
+      clearMediaPreviews();
+      toggleFeaturedStatus(false); // Reset star to false
+
+      if (mode === 'create') {
+        document.getElementById('cmsTitle').textContent = 'Create New College';
+        document.getElementById('cmsSub').textContent = 'Add a new institution to the website.';
+        document.getElementById('saveBtn').textContent = 'Publish College';
+        document.getElementById('deleteBtn').style.display = 'none';
+        editSelectionArea.style.display = 'none';
+      } else {
+        document.getElementById('cmsTitle').textContent = 'Edit / Delete College';
+        document.getElementById('cmsSub').textContent = 'Modify existing records from the database.';
+        document.getElementById('saveBtn').textContent = 'Update College Data';
+        document.getElementById('deleteBtn').style.display = 'block';
+        editSelectionArea.style.display = 'block';
+        loadEditDropdowns();
+      }
+    };
+
+    async function loadEditDropdowns() {
+      const snapshot = await getDocs(collection(db, "colleges"));
+      allCollegesCache = [];
+      snapshot.forEach(doc => allCollegesCache.push({ id: doc.id, ...doc.data() }));
+
+      const states = [...new Set(allCollegesCache.map(item => item.stateKey))];
+      editStateSelect.innerHTML = '<option value="">-- Select State --</option>';
+      states.forEach(st => {
+        const name = allCollegesCache.find(i => i.stateKey === st).stateName;
+        editStateSelect.innerHTML += `<option value="${st}">${name}</option>`;
+      });
+      
+      editDistrictGroup.style.display = 'none';
+      editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
+      editCollegeSelect.disabled = true;
+    }
+
+    editStateSelect.addEventListener('change', (e) => {
+      const st = e.target.value;
+      const stData = allCollegesCache.filter(i => i.stateKey === st);
+      
+      editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
+      editCollegeSelect.disabled = false;
+      
+      if(stData.length > 0 && stData[0].type === 'district') {
+        editDistrictGroup.style.display = 'block';
+        const districts = [...new Set(stData.map(item => item.district))].filter(Boolean).sort();
+        editDistrictSelect.innerHTML = '<option value="">-- Select District --</option>';
+        districts.forEach(d => editDistrictSelect.innerHTML += `<option value="${d}">${d}</option>`);
+        editCollegeSelect.disabled = true; 
+      } else {
+        editDistrictGroup.style.display = 'none';
+        stData.sort((a,b) => a.name.localeCompare(b.name)).forEach(col => {
+          editCollegeSelect.innerHTML += `<option value="${col.id}">${col.name}</option>`;
+        });
+      }
+    });
+
+    editDistrictSelect.addEventListener('change', (e) => {
+      const dist = e.target.value;
+      const st = editStateSelect.value;
+      const distData = allCollegesCache.filter(i => i.stateKey === st && i.district === dist);
+      
+      editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
+      editCollegeSelect.disabled = false;
+      distData.sort((a,b) => a.name.localeCompare(b.name)).forEach(col => {
+        editCollegeSelect.innerHTML += `<option value="${col.id}">${col.name}</option>`;
+      });
+    });
+
+    editCollegeSelect.addEventListener('change', async (e) => {
+      const docId = e.target.value;
+      if(!docId) return;
+
+      const docSnap = await getDoc(doc(db, "colleges", docId));
+      if(docSnap.exists()) {
+        const data = docSnap.data();
+        document.getElementById('docId').value = docId;
+        stateSelect.value = data.stateKey;
+        stateSelect.dispatchEvent(new Event('change'));
+        
+        if(data.type === 'district') {
+          districtSelect.value = data.district;
+        }
+        
+        document.getElementById('collegeName').value = data.name;
+        document.getElementById('collegeDesc').value = data.description || '';
+        
+        document.getElementById('uploadedImages').value = JSON.stringify(data.images || []);
+        document.getElementById('uploadedPdf').value = data.pdfUrl || '';
+        renderMediaPreviews();
+        
+        // Update Star Toggle from DB
+        const isFeat = data.isFeatured === true || data.isFeatured === "true";
+        toggleFeaturedStatus(isFeat);
+      }
+    });
+
+    // ==========================================
+    // NATIVE FETCH UPLOADS (Bypassing Widget)
+    // ==========================================
+    
+    async function uploadToCloudinary(file, statusElemId) {
+       const statusElem = document.getElementById(statusElemId);
+       statusElem.textContent = `Uploading ${file.name}... Please wait ⏳`;
+       statusElem.className = 'upload-status';
+       
+       const formData = new FormData();
+       formData.append('file', file);
+       formData.append('upload_preset', UPLOAD_PRESET);
+
+       try {
+         const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+         const data = await res.json();
+         
+         if(data.secure_url) {
+            statusElem.textContent = `✅ Successfully uploaded ${file.name}`;
+            setTimeout(() => statusElem.textContent = '', 3000);
+            return { url: data.secure_url, type: data.resource_type };
+         } else {
+            throw new Error(data.error?.message || 'Upload failed');
+         }
+       } catch (err) {
+         console.error(err);
+         statusElem.textContent = `❌ Error uploading ${file.name}. Check connection.`;
+         statusElem.className = 'upload-error';
+         return null;
+       }
+    }
+
+    document.getElementById('imageInput').addEventListener('change', async (e) => {
+       const files = e.target.files;
+       if(!files.length) return;
+       
+       let currentImages = JSON.parse(document.getElementById('uploadedImages').value || '[]');
+       
+       for(let file of files) {
+          const uploadedData = await uploadToCloudinary(file, 'imageStatus');
+          if(uploadedData) currentImages.push(uploadedData);
+       }
+       document.getElementById('uploadedImages').value = JSON.stringify(currentImages);
+       renderMediaPreviews();
+       e.target.value = '';
+    });
+
+    document.getElementById('pdfInput').addEventListener('change', async (e) => {
+       const file = e.target.files[0];
+       if(!file) return;
+       
+       const uploadedData = await uploadToCloudinary(file, 'pdfStatus');
+       if(uploadedData) {
+          document.getElementById('uploadedPdf').value = uploadedData.url;
+          renderMediaPreviews();
+       }
+       e.target.value = '';
+    });
+
+    window.removeImage = (index) => {
+      let currentImages = JSON.parse(document.getElementById('uploadedImages').value || '[]');
+      currentImages.splice(index, 1);
+      document.getElementById('uploadedImages').value = JSON.stringify(currentImages);
+      renderMediaPreviews();
+    };
+
+    window.removePdf = () => {
+      document.getElementById('uploadedPdf').value = '';
+      renderMediaPreviews();
+    };
+
+    function renderMediaPreviews() {
+      const imgDataStr = document.getElementById('uploadedImages').value;
+      const images = imgDataStr ? JSON.parse(imgDataStr) : [];
+      imagePreviewContainer.innerHTML = '';
+      
+      if(images.length === 0) {
+         imagePreviewContainer.innerHTML = '<span style="color:#9ca3af; font-size:0.85rem; margin-top:5px; display:block;">No images currently uploaded.</span>';
+      } else {
+        images.forEach((media, index) => {
+          let tag = media.type === 'video' 
+            ? `<video src="${media.url}" autoplay muted loop></video>`
+            : `<img src="${media.url}" alt="preview">`;
+            
+          imagePreviewContainer.innerHTML += `
+            <div class="media-card">
+              ${tag}
+              <button type="button" class="media-remove" onclick="removeImage(${index})" title="Remove">&times;</button>
+            </div>
+          `;
+        });
+      }
+
+      const pdfUrl = document.getElementById('uploadedPdf').value;
+      pdfPreviewContainer.innerHTML = '';
+      if(pdfUrl) {
+        pdfPreviewContainer.innerHTML = `
+          <div class="pdf-preview">
+            📄 <a href="${pdfUrl}" target="_blank">View Uploaded PDF Document</a>
+            <button type="button" class="action-btn btn-del" onclick="removePdf()">🗑️ Delete PDF</button>
+          </div>
+        `;
+      } else {
+         pdfPreviewContainer.innerHTML = '<span style="color:#9ca3af; font-size:0.85rem; margin-top:10px; display:block;">No PDF currently uploaded.</span>';
+      }
+    }
+
+    function clearMediaPreviews() {
+      document.getElementById('uploadedImages').value = '[]';
+      document.getElementById('uploadedPdf').value = '';
+      renderMediaPreviews();
+    }
+
+    // ==========================================
+    // SAVE / PUBLISH & DELETE LOGIC
+    // ==========================================
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const docId = document.getElementById('docId').value;
+      const stateSel = stateSelect.options[stateSelect.selectedIndex];
+      const isFeatured = document.getElementById('isFeaturedCheck').checked; // Read star toggle
+      
+      const payload = {
+        stateKey: stateSel.value,
+        stateName: stateSel.text,
+        type: stateSel.dataset.type,
+        district: districtSelect.value || "",
+        name: document.getElementById('collegeName').value.trim(),
+        description: document.getElementById('collegeDesc').value.trim(),
+        images: JSON.parse(document.getElementById('uploadedImages').value || '[]'),
+        pdfUrl: document.getElementById('uploadedPdf').value || "",
+        isFeatured: isFeatured // Send status to DB
+      };
+
+      try {
+        if(currentCmsMode === 'create') {
+          await addDoc(collection(db, "colleges"), payload);
+          showToast('College Created Successfully! It is now live.');
+          form.reset();
+          stateSelect.dispatchEvent(new Event('change'));
+          clearMediaPreviews();
+          toggleFeaturedStatus(false);
+        } else {
+          if(!docId) return showToast('Please select a college to edit first.', true);
+          await updateDoc(doc(db, "colleges", docId), payload);
+          showToast('College Data Updated Successfully!');
+          loadEditDropdowns(); 
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Error saving data. Check console.', true);
+      }
+    });
+
+    document.getElementById('deleteBtn').addEventListener('click', async () => {
+      const docId = document.getElementById('docId').value;
+      if(!docId) return showToast('Please select a college to delete.', true);
+      
+      const collegeName = document.getElementById('collegeName').value;
+      
+      if(confirm(`Are you absolutely sure you want to DELETE ${collegeName}?`)) {
+        try {
+          await deleteDoc(doc(db, "colleges", docId));
+          showToast('College Deleted successfully.');
+          form.reset();
+          document.getElementById('docId').value = '';
+          stateSelect.dispatchEvent(new Event('change'));
+          clearMediaPreviews();
+          toggleFeaturedStatus(false);
+          loadEditDropdowns();
+        } catch(err) {
+          console.error(err);
+          showToast('Error deleting college.', true);
+        }
+      }
     });
 
   </script>
