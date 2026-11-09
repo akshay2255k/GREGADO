@@ -559,6 +559,69 @@ window.handleLogout = function () {
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Normalize legacy destination names/keys so old Firestore records
+        // and newly published records are grouped under the same destination.
+        const STATE_NAMES = {
+          kerala: "Kerala",
+          hyderabad: "Hyderabad",
+          coimbatore: "Coimbatore",
+          bengaluru: "Bengaluru",
+          manglore: "Mangaluru",
+          mysore: "Mysore",
+          kanyakumari: "Kanyakumari",
+          chennai: "Chennai",
+          tamilnadu: "Tamil Nadu",
+          karnataka: "Karnataka",
+          andhrapradesh: "Andhra Pradesh",
+          other: "Other Places"
+        };
+        const STATE_ALIASES = {
+          kerala: "kerala",
+          hyderabad: "hyderabad", hydrabad: "hyderabad", hydrabaad: "hyderabad",
+          coimbatore: "coimbatore", coibatore: "coimbatore", coimbatorecity: "coimbatore",
+          bengaluru: "bengaluru", bangalore: "bengaluru", bangaluru: "bengaluru",
+          manglore: "manglore", mangalore: "manglore", mangaluru: "manglore",
+          mysore: "mysore", mysuru: "mysore",
+          kanyakumari: "kanyakumari",
+          chennai: "chennai",
+          tamilnadu: "tamilnadu",
+          karnataka: "karnataka",
+          andhrapradesh: "andhrapradesh", andrapradesh: "andhrapradesh",
+          other: "other", otherplaces: "other"
+        };
+        const compactStateValue = value => String(value ?? "")
+          .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase().replace(/[^a-z0-9]/g, "");
+        function resolveStateKey(record) {
+          const candidates = [
+            record?.stateKey, record?.stateName, record?.state,
+            record?.destinationKey, record?.destination,
+            record?.placeKey, record?.place, record?.location
+          ];
+          let genericFallback = "";
+          for (const candidate of candidates) {
+            const whole = compactStateValue(candidate);
+            const wholeMatch = STATE_ALIASES[whole];
+            if (wholeMatch && wholeMatch !== "other") return wholeMatch;
+            if (wholeMatch === "other") genericFallback = "other";
+            // Also recognize values such as "Hyderabad, Telangana" or "Kochi, Kerala".
+            for (const part of String(candidate ?? "").split(/[,|/()\-]+/)) {
+              const token = compactStateValue(part);
+              const tokenMatch = STATE_ALIASES[token];
+              if (tokenMatch && tokenMatch !== "other") return tokenMatch;
+              if (tokenMatch === "other") genericFallback = "other";
+            }
+          }
+          return genericFallback;
+        }
+
+        function canonicalDistrict(value) {
+          const compact = compactStateValue(value);
+          if (compact === "kasargod") return "Kasaragod";
+          const known = ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"];
+          return known.find(name => compactStateValue(name) === compact) || String(value ?? "").trim();
+        }
+
         let placesData = {};
         window.rawCollegesCache = [];
 
@@ -568,8 +631,17 @@ window.handleLogout = function () {
           let featuredHtml = "";
 
           snapshot.forEach(doc => {
-            const data = doc.data();
-            data.id = doc.id;
+            const rawData = doc.data() || {};
+            const resolvedStateKey = resolveStateKey(rawData);
+            const normalizedType = String(rawData.type || "").toLowerCase();
+            const data = {
+              ...rawData,
+              id: doc.id,
+              stateKey: resolvedStateKey || rawData.stateKey || "",
+              stateName: STATE_NAMES[resolvedStateKey] || rawData.stateName || rawData.state || "",
+              type: normalizedType === "district" || (!normalizedType && resolvedStateKey === "kerala") ? "district" : "alphabet",
+              district: canonicalDistrict(rawData.district)
+            };
             window.rawCollegesCache.push(data);
 
             // Featured/Offers (*) check
@@ -582,6 +654,7 @@ window.handleLogout = function () {
             }
 
             const sk = data.stateKey;
+            if (!sk || !STATE_NAMES[sk]) return;
             if (!placesData[sk]) {
               placesData[sk] = { name: data.stateName, type: data.type, data: [] };
             }
@@ -607,6 +680,10 @@ window.handleLogout = function () {
           if (currentPlaceKey && placesData[currentPlaceKey]) {
             renderPlaceData(currentPlaceKey);
           }
+        }, (error) => {
+          console.error("Gregado colleges listener failed:", error);
+          const target = document.getElementById("spa-container");
+          if (target) target.innerHTML = '<p style="text-align:center;padding:2rem;">Unable to load colleges right now. Please refresh the page.</p>';
         });
 
         window.openFeaturedModal = function (colId) {

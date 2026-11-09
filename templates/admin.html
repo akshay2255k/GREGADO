@@ -371,16 +371,23 @@
             <small style="color:var(--text-dim); display:block; margin-top:10px;">Select a college above, then modify its details in the form below.</small>
           </div>
 
-          <!-- Main Form Fields -->
+          <!-- Main Form Fields (12 Total Locations Added Here) -->
           <div class="form-row" style="display: flex; gap: 15px;">
             <div class="form-group">
               <label>State / Region</label>
               <select id="stateSelect" required>
                 <option value="">-- Select State --</option>
                 <option value="kerala" data-type="district">Kerala</option>
+                <option value="hyderabad" data-type="alphabet">Hyderabad</option>
+                <option value="coimbatore" data-type="alphabet">Coimbatore</option>
                 <option value="bengaluru" data-type="alphabet">Bengaluru</option>
-                <option value="manglore" data-type="alphabet">Manglore</option>
+                <option value="manglore" data-type="alphabet">Mangaluru</option>
                 <option value="mysore" data-type="alphabet">Mysore</option>
+                <option value="kanyakumari" data-type="alphabet">Kanyakumari</option>
+                <option value="chennai" data-type="alphabet">Chennai</option>
+                <option value="tamilnadu" data-type="alphabet">Tamil Nadu</option>
+                <option value="karnataka" data-type="alphabet">Karnataka</option>
+                <option value="andhrapradesh" data-type="alphabet">Andhra Pradesh</option>
                 <option value="other" data-type="alphabet">Other Places</option>
               </select>
             </div>
@@ -526,6 +533,76 @@
     const UPLOAD_PRESET = "gregado";
     const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
+    // The available states map
+    const STATES_MAP = {
+      "kerala": "Kerala",
+      "hyderabad": "Hyderabad",
+      "coimbatore": "Coimbatore",
+      "bengaluru": "Bengaluru",
+      "manglore": "Mangaluru",
+      "mysore": "Mysore",
+      "kanyakumari": "Kanyakumari",
+      "chennai": "Chennai",
+      "tamilnadu": "Tamil Nadu",
+      "karnataka": "Karnataka",
+      "andhrapradesh": "Andhra Pradesh",
+      "other": "Other Places"
+    };
+
+    const KERALA_DISTRICTS = [
+      "Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam",
+      "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta",
+      "Thiruvananthapuram", "Thrissur", "Wayanad"
+    ];
+
+    // Support older records that stored a display name, alternate spelling,
+    // or a different destination field instead of the current stateKey.
+    const STATE_ALIASES = {
+      kerala: "kerala",
+      hyderabad: "hyderabad", hydrabad: "hyderabad", hydrabaad: "hyderabad",
+      coimbatore: "coimbatore", coibatore: "coimbatore",
+      bengaluru: "bengaluru", bangalore: "bengaluru", bangaluru: "bengaluru",
+      manglore: "manglore", mangalore: "manglore", mangaluru: "manglore",
+      mysore: "mysore", mysuru: "mysore",
+      kanyakumari: "kanyakumari",
+      chennai: "chennai",
+      tamilnadu: "tamilnadu",
+      karnataka: "karnataka",
+      andhrapradesh: "andhrapradesh", andrapradesh: "andhrapradesh",
+      other: "other", otherplaces: "other"
+    };
+    const compactStateValue = value => String(value ?? "")
+      .normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase().replace(/[^a-z0-9]/g, "");
+    function resolveStateKey(record) {
+      const candidates = [
+        record?.stateKey, record?.stateName, record?.state,
+        record?.destinationKey, record?.destination,
+        record?.placeKey, record?.place, record?.location
+      ];
+      let genericFallback = "";
+      for (const candidate of candidates) {
+        const whole = compactStateValue(candidate);
+        const wholeMatch = STATE_ALIASES[whole];
+        if (wholeMatch && wholeMatch !== "other") return wholeMatch;
+        if (wholeMatch === "other") genericFallback = "other";
+        // Also recognize values such as "Hyderabad, Telangana" or "Kochi, Kerala".
+        for (const part of String(candidate ?? "").split(/[,|/()\-]+/)) {
+          const token = compactStateValue(part);
+          const tokenMatch = STATE_ALIASES[token];
+          if (tokenMatch && tokenMatch !== "other") return tokenMatch;
+          if (tokenMatch === "other") genericFallback = "other";
+        }
+      }
+      return genericFallback;
+    }
+
+    function canonicalDistrict(value) {
+      const compact = compactStateValue(value);
+      if (compact === "kasargod") return "Kasaragod";
+      return KERALA_DISTRICTS.find(name => compactStateValue(name) === compact) || String(value ?? "").trim();
+    }
+
     // UI & Auth Helpers
     document.getElementById('logoutBtn').onclick = () => { localStorage.clear(); window.location.href = "login.html"; };
     window.switchMainTab = (tabId) => {
@@ -544,7 +621,6 @@
 
     // --- FEATURED TOGGLE LOGIC (WITH EDIT MODE PROTECTION) ---
     window.toggleFeaturedStatus = (forceState = null) => {
-      // Security check: If we are in 'edit' mode, but haven't selected a college yet (docId is empty), DON'T allow toggling!
       if (currentCmsMode === 'edit' && !document.getElementById('docId').value && forceState === null) {
          showToast('Please select a college to edit first before marking it as Featured.', true);
          return;
@@ -664,7 +740,7 @@
       document.getElementById('docId').value = '';
       stateSelect.dispatchEvent(new Event('change'));
       clearMediaPreviews();
-      toggleFeaturedStatus(false); // Reset star to false
+      toggleFeaturedStatus(false);
 
       if (mode === 'create') {
         document.getElementById('cmsTitle').textContent = 'Create New College';
@@ -683,20 +759,37 @@
     };
 
     async function loadEditDropdowns() {
-      const snapshot = await getDocs(collection(db, "colleges"));
-      allCollegesCache = [];
-      snapshot.forEach(doc => allCollegesCache.push({ id: doc.id, ...doc.data() }));
+      try {
+        const snapshot = await getDocs(collection(db, "colleges"));
+        allCollegesCache = [];
+        snapshot.forEach(collegeDoc => {
+          const rawData = collegeDoc.data() || {};
+          const stateKey = resolveStateKey(rawData);
+          const rawType = String(rawData.type || "").toLowerCase();
+          allCollegesCache.push({
+            ...rawData,
+            id: collegeDoc.id,
+            stateKey: stateKey || rawData.stateKey || "",
+            stateName: STATES_MAP[stateKey] || rawData.stateName || rawData.state || "",
+            type: rawType === "district" || (!rawType && stateKey === "kerala") ? "district" : "alphabet",
+            district: canonicalDistrict(rawData.district)
+          });
+        });
 
-      const states = [...new Set(allCollegesCache.map(item => item.stateKey))];
+      // Populate edit states dropdown with all 12 states and their college counts
       editStateSelect.innerHTML = '<option value="">-- Select State --</option>';
-      states.forEach(st => {
-        const name = allCollegesCache.find(i => i.stateKey === st).stateName;
-        editStateSelect.innerHTML += `<option value="${st}">${name}</option>`;
-      });
+      for (const [key, name] of Object.entries(STATES_MAP)) {
+        const count = allCollegesCache.filter(c => c.stateKey === key).length;
+        editStateSelect.innerHTML += `<option value="${key}">${name} (${count} Colleges)</option>`;
+      }
       
-      editDistrictGroup.style.display = 'none';
-      editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
-      editCollegeSelect.disabled = true;
+        editDistrictGroup.style.display = 'none';
+        editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
+        editCollegeSelect.disabled = true;
+      } catch (error) {
+        console.error("Could not load colleges for editing:", error);
+        showToast("Unable to load colleges. Check Firestore connection/rules.", true);
+      }
     }
 
     editStateSelect.addEventListener('change', (e) => {
@@ -706,30 +799,43 @@
       editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
       editCollegeSelect.disabled = false;
       
-      if(stData.length > 0 && stData[0].type === 'district') {
+      if(st === 'kerala') {
         editDistrictGroup.style.display = 'block';
-        const districts = [...new Set(stData.map(item => item.district))].filter(Boolean).sort();
         editDistrictSelect.innerHTML = '<option value="">-- Select District --</option>';
-        districts.forEach(d => editDistrictSelect.innerHTML += `<option value="${d}">${d}</option>`);
+        KERALA_DISTRICTS.forEach(d => {
+          const count = stData.filter(c => c.district === d).length;
+          editDistrictSelect.innerHTML += `<option value="${d}">${d} (${count} Colleges)</option>`;
+        });
         editCollegeSelect.disabled = true; 
       } else {
         editDistrictGroup.style.display = 'none';
-        stData.sort((a,b) => a.name.localeCompare(b.name)).forEach(col => {
-          editCollegeSelect.innerHTML += `<option value="${col.id}">${col.name}</option>`;
-        });
+        if (stData.length > 0) {
+            stData.sort((a,b) => a.name.localeCompare(b.name)).forEach(col => {
+            editCollegeSelect.innerHTML += `<option value="${col.id}">${col.name}</option>`;
+            });
+        } else {
+            editCollegeSelect.innerHTML = '<option value="">No colleges in this state yet</option>';
+            editCollegeSelect.disabled = true;
+        }
       }
     });
 
     editDistrictSelect.addEventListener('change', (e) => {
       const dist = e.target.value;
       const st = editStateSelect.value;
-      const distData = allCollegesCache.filter(i => i.stateKey === st && i.district === dist);
+      const distData = allCollegesCache.filter(i => i.stateKey === st && canonicalDistrict(i.district) === canonicalDistrict(dist));
       
       editCollegeSelect.innerHTML = '<option value="">-- Select College --</option>';
       editCollegeSelect.disabled = false;
-      distData.sort((a,b) => a.name.localeCompare(b.name)).forEach(col => {
-        editCollegeSelect.innerHTML += `<option value="${col.id}">${col.name}</option>`;
-      });
+      
+      if (distData.length > 0) {
+        distData.sort((a,b) => a.name.localeCompare(b.name)).forEach(col => {
+          editCollegeSelect.innerHTML += `<option value="${col.id}">${col.name}</option>`;
+        });
+      } else {
+        editCollegeSelect.innerHTML = '<option value="">No colleges in this district yet</option>';
+        editCollegeSelect.disabled = true;
+      }
     });
 
     editCollegeSelect.addEventListener('change', async (e) => {
@@ -738,7 +844,14 @@
 
       const docSnap = await getDoc(doc(db, "colleges", docId));
       if(docSnap.exists()) {
-        const data = docSnap.data();
+        const rawData = docSnap.data() || {};
+        const resolvedStateKey = resolveStateKey(rawData);
+        const data = {
+          ...rawData,
+          stateKey: resolvedStateKey || rawData.stateKey || "",
+          type: String(rawData.type || "").toLowerCase() === "district" || (!rawData.type && resolvedStateKey === "kerala") ? "district" : "alphabet",
+          district: canonicalDistrict(rawData.district)
+        };
         document.getElementById('docId').value = docId;
         stateSelect.value = data.stateKey;
         stateSelect.dispatchEvent(new Event('change'));
@@ -885,7 +998,7 @@
       
       const payload = {
         stateKey: stateSel.value,
-        stateName: stateSel.text,
+        stateName: stateSel.textContent.trim(),
         type: stateSel.dataset.type,
         district: districtSelect.value || "",
         name: document.getElementById('collegeName').value.trim(),
