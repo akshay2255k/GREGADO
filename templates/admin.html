@@ -908,15 +908,35 @@
     document.getElementById('imageInput').addEventListener('change', async (e) => {
        const files = e.target.files;
        if(!files.length) return;
-       
+
+       const MAX_VIDEO_SIZE = 85 * 1024 * 1024; // 85 MB (MiB)
+       const statusElem = document.getElementById('imageStatus');
        let currentImages = JSON.parse(document.getElementById('uploadedImages').value || '[]');
-       
+       let rejectedVideoCount = 0;
+
        for(let file of files) {
+          const isVideo = file.type.toLowerCase().startsWith('video/')
+            || /\.(mp4|mov|webm|avi|mkv|m4v|mpeg|mpg|3gp|ogv)$/i.test(file.name);
+
+          // Only videos have a size limit. Image uploads remain unrestricted.
+          if(isVideo && file.size > MAX_VIDEO_SIZE) {
+            rejectedVideoCount++;
+            const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
+            statusElem.textContent = `❌ ${file.name} is ${fileSizeMb} MB. Videos must be 85 MB or smaller.`;
+            statusElem.className = 'upload-error';
+            continue;
+          }
+
           const uploadedData = await uploadToCloudinary(file, 'imageStatus');
           if(uploadedData) currentImages.push(uploadedData);
        }
+
        document.getElementById('uploadedImages').value = JSON.stringify(currentImages);
        renderMediaPreviews();
+       if(rejectedVideoCount > 0) {
+         statusElem.textContent = `${rejectedVideoCount} video(s) skipped. Maximum video size is 85 MB. Images have no size limit.`;
+         statusElem.className = 'upload-error';
+       }
        e.target.value = '';
     });
 

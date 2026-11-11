@@ -805,27 +805,138 @@ window.handleLogout = function () {
           slider.innerHTML = '<div class="spa-slider-nav" id="spaSliderNav"></div>';
           const nav = document.getElementById('spaSliderNav');
 
-          let mediaList = colObj.images && colObj.images.length > 0
+          // Stop any previous college media before rendering the newly selected college.
+          if (sTimer) {
+            clearTimeout(sTimer);
+            sTimer = null;
+          }
+          slider.querySelectorAll('video').forEach(video => video.pause());
+
+          const mediaList = colObj.images && colObj.images.length > 0
             ? colObj.images
             : [{ type: 'image', url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&w=1200&q=80' }];
+          let cur = 0;
+          const mediaItems = [];
+
+          // Cloudinary's fl_attachment delivery flag asks the server to download
+          // the original uploaded media instead of opening it in the browser.
+          function getMediaDownloadUrl(mediaUrl) {
+            try {
+              const parsedUrl = new URL(mediaUrl, window.location.href);
+              if (parsedUrl.hostname.endsWith('cloudinary.com') && parsedUrl.pathname.includes('/upload/')) {
+                parsedUrl.pathname = parsedUrl.pathname.replace('/upload/', '/upload/fl_attachment/');
+                return parsedUrl.href;
+              }
+            } catch (error) {
+              console.warn('Could not prepare media download URL:', error);
+            }
+            return mediaUrl;
+          }
+
+          function scheduleImageAdvance() {
+            if (sTimer) {
+              clearTimeout(sTimer);
+              sTimer = null;
+            }
+            // Images keep the existing automatic 3.5-second slide interval.
+            // Videos advance only from their own 'ended' event below.
+            if (mediaList.length > 1 && mediaList[cur]?.type !== 'video') {
+              sTimer = setTimeout(() => showMediaSlide(cur + 1), 3500);
+            }
+          }
+
+          function showMediaSlide(idx) {
+            if (sTimer) {
+              clearTimeout(sTimer);
+              sTimer = null;
+            }
+
+            cur = (idx + mediaList.length) % mediaList.length;
+            mediaItems.forEach((item, i) => {
+              item.classList.toggle('active', i === cur);
+              const video = item.querySelector('video');
+              if (!video) return;
+
+              video.onended = null;
+              if (i !== cur) {
+                video.pause();
+                try { video.currentTime = 0; } catch (_) { /* Metadata may not be loaded yet. */ }
+              }
+            });
+
+            slider.querySelectorAll('.spa-slider-dot').forEach((dot, i) => {
+              dot.classList.toggle('active', i === cur);
+            });
+
+            const activeVideo = mediaItems[cur]?.querySelector('video');
+            if (activeVideo) {
+              activeVideo.muted = true;
+              activeVideo.loop = false;
+              activeVideo.playsInline = true;
+              activeVideo.currentTime = 0;
+              activeVideo.onended = () => {
+                if (sModal.classList.contains('is-active') && mediaList.length > 1) {
+                  showMediaSlide(cur + 1);
+                }
+              };
+              const playAttempt = activeVideo.play();
+              if (playAttempt && typeof playAttempt.catch === 'function') {
+                playAttempt.catch(error => console.warn('College video autoplay was blocked:', error));
+              }
+              // Do not schedule a timer for video slides. The next slide is shown
+              // only after the complete video playback reaches its ended event.
+            } else {
+              scheduleImageAdvance();
+            }
+          }
 
           mediaList.forEach((m, i) => {
-            const item = document.createElement('div'); item.className = `spa-slider-item ${i === 0 ? 'active' : ''}`;
+            const item = document.createElement('div');
+            item.className = `spa-slider-item ${i === 0 ? 'active' : ''}`;
+
             if (m.type === 'image') {
-              const img = document.createElement('img'); img.src = m.url;
+              const img = document.createElement('img');
+              img.src = m.url;
+              img.alt = 'College photo';
               item.appendChild(img);
             } else if (m.type === 'video') {
-              const vid = document.createElement('video'); vid.src = m.url;
-              vid.autoplay = true; vid.muted = true; vid.loop = true; vid.playsInline = true;
+              const vid = document.createElement('video');
+              vid.src = m.url;
+              vid.autoplay = true;
+              vid.muted = true;
+              vid.loop = false;
+              vid.playsInline = true;
               item.appendChild(vid);
             }
+
+            if (m.url && (m.type === 'image' || m.type === 'video')) {
+              const downloadButton = document.createElement('a');
+              downloadButton.className = 'spa-media-download';
+              downloadButton.href = getMediaDownloadUrl(m.url);
+              downloadButton.setAttribute('download', '');
+              downloadButton.setAttribute('aria-label', `Download college ${m.type}`);
+              downloadButton.title = `Download ${m.type}`;
+              downloadButton.innerHTML = '<span aria-hidden="true">⬇</span>';
+              downloadButton.addEventListener('click', event => event.stopPropagation());
+              item.appendChild(downloadButton);
+            }
+
             slider.appendChild(item);
+            mediaItems.push(item);
+
             if (mediaList.length > 1) {
-              const dot = document.createElement('div'); dot.className = `spa-slider-dot ${i === 0 ? 'active' : ''}`;
-              dot.onclick = () => showMSlide(i);
+              const dot = document.createElement('button');
+              dot.type = 'button';
+              dot.className = `spa-slider-dot ${i === 0 ? 'active' : ''}`;
+              dot.setAttribute('aria-label', `Show media ${i + 1}`);
+              dot.onclick = () => showMediaSlide(i);
               nav.appendChild(dot);
             }
           });
+
+          // Start with the first media item. If it is a video, it remains visible
+          // until playback finishes; the existing dots still allow manual changes.
+          showMediaSlide(0);
 
           const contentBox = document.getElementById('spaContentBox');
           const descHtml = colObj.description ? `<p>${colObj.description.replace(/\n/g, '<br>')}</p>` : '<p>More details coming soon.</p>';
@@ -866,19 +977,19 @@ window.handleLogout = function () {
             });
           }
 
-          let cur = 0;
-          if (sTimer) clearInterval(sTimer);
-          if (mediaList.length > 1) {
-            sTimer = setInterval(() => { cur = (cur + 1) % mediaList.length; showMSlide(cur); }, 3500);
+        }
+
+        document.getElementById('spaModalClose').onclick = () => {
+          sModal.classList.remove('is-active');
+          if (sTimer) {
+            clearTimeout(sTimer);
+            sTimer = null;
           }
-        }
-
-        function showMSlide(idx) {
-          document.querySelectorAll('.spa-slider-item').forEach((el, i) => el.classList.toggle('active', i === idx));
-          document.querySelectorAll('.spa-slider-dot').forEach((el, i) => el.classList.toggle('active', i === idx));
-        }
-
-        document.getElementById('spaModalClose').onclick = () => { sModal.classList.remove('is-active'); clearInterval(sTimer); };
+          document.querySelectorAll('#spaSlider video').forEach(video => {
+            video.pause();
+            video.onended = null;
+          });
+        };
 
         // AI Search
         const searchOverlay = document.getElementById('aiSearchOverlay');

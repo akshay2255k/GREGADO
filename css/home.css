@@ -1475,6 +1475,40 @@
       object-fit: cover;
     }
 
+    /* Small download button anchored to the bottom-right of each media slide. */
+    .spa-media-download {
+      position: absolute;
+      right: 13px;
+      bottom: 13px;
+      z-index: 7;
+      width: 35px;
+      height: 35px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, .72);
+      border-radius: 50%;
+      background: rgba(8, 17, 31, .78);
+      color: #fff !important;
+      text-decoration: none;
+      font-size: 18px;
+      line-height: 1;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, .28);
+      backdrop-filter: blur(6px);
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .spa-media-download:hover {
+      transform: translateY(-2px);
+      background: rgba(37, 99, 235, .96);
+      color: #fff !important;
+    }
+
+    .spa-media-download:focus-visible {
+      outline: 2px solid #fff;
+      outline-offset: 3px;
+    }
+
     .spa-slider-nav {
       position: absolute;
       bottom: 14px;
