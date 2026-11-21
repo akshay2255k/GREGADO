@@ -2820,3 +2820,131 @@
         transition: none !important;
       }
     }
+
+/* ============================================================
+   GREGADO FEATURED COLLEGES — DESTINATION VIEW
+   ============================================================ */
+.spa-alphabet-nav .spa-featured-nav-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  margin: 0 auto 7px;
+  border: 1px solid rgba(245, 180, 35, .55);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #fff9e5, #ffe28a 58%, #ffc43d);
+  color: #a96b00 !important;
+  font-size: 1rem;
+  line-height: 1;
+  box-shadow: 0 5px 16px rgba(224, 157, 20, .24), inset 0 1px 0 rgba(255,255,255,.95);
+  animation: gregado-featured-nav-glow 2.5s ease-in-out infinite;
+}
+.spa-alphabet-nav .spa-featured-nav-btn:hover {
+  background: linear-gradient(145deg, #fffbed, #ffdc70 58%, #ffbb24) !important;
+  color: #8d5700 !important;
+  border-color: rgba(245, 158, 11, .85);
+  transform: translateY(-1px) scale(1.1);
+}
+.spa-group-section { scroll-margin-top: 112px; }
+.spa-featured-section {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(245, 178, 35, .38) !important;
+  box-shadow: 0 14px 38px rgba(206, 145, 20, .10), inset 0 1px 0 rgba(255,255,255,.05);
+}
+.spa-featured-section::before {
+  content: "";
+  position: absolute;
+  top: -75px;
+  right: -55px;
+  width: 190px;
+  height: 150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 201, 72, .15), transparent 70%);
+  pointer-events: none;
+}
+.spa-featured-section .spa-featured-heading { position: relative; gap: 10px; }
+.spa-featured-section .spa-featured-heading .spa-featured-heading-star {
+  color: #f6b900 !important;
+  font-size: 1.35em;
+  line-height: 1;
+  filter: drop-shadow(0 0 7px rgba(255,190,35,.48));
+}
+.spa-featured-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 25px;
+  height: 23px;
+  margin-left: 2px;
+  padding: 0 7px;
+  border: 1px solid rgba(245,180,35,.36);
+  border-radius: 999px;
+  background: rgba(245,180,35,.13);
+  color: #d99a00;
+  font-family: Inter, sans-serif;
+  font-size: .68rem;
+  font-weight: 800;
+}
+.spa-college-btn .college-name {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-wrap: anywhere;
+  line-height: 1.45;
+}
+.spa-college-btn .college-featured-star {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  margin: 0 9px 0 12px;
+  color: #f5b800 !important;
+  background: linear-gradient(112deg, #fff5c2 0%, #ffc72d 24%, #fff9d8 43%, #e99a00 66%, #ffe995 100%);
+  background-size: 230% 100%;
+  background-position: 110% center;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 1.28rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 4px rgba(255,190,35,.48));
+  transform-origin: center;
+  animation: gregado-featured-star-shine 3.2s ease-in-out infinite,
+             gregado-featured-star-pulse 2.1s ease-in-out infinite;
+  pointer-events: none;
+}
+.spa-college-btn .arrow { flex: 0 0 auto; margin-left: 5px; }
+@keyframes gregado-featured-star-shine {
+  0%, 12% { background-position: 110% center; }
+  58%, 100% { background-position: -110% center; }
+}
+@keyframes gregado-featured-star-pulse {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(255,190,35,.38)); }
+  50% { transform: scale(1.13); filter: drop-shadow(0 0 8px rgba(255,190,35,.76)); }
+}
+@keyframes gregado-featured-nav-glow {
+  0%, 100% { box-shadow: 0 5px 14px rgba(224,157,20,.18), inset 0 1px 0 rgba(255,255,255,.9); }
+  50% { box-shadow: 0 6px 20px rgba(245,177,35,.40), 0 0 0 4px rgba(245,177,35,.08), inset 0 1px 0 rgba(255,255,255,.95); }
+}
+@media (max-width: 1100px) {
+  .spa-alphabet-nav .spa-featured-nav-btn {
+    flex-basis: 31px;
+    width: 31px;
+    min-width: 31px;
+    height: 31px;
+    margin: 0 3px 0 0;
+  }
+  .spa-college-btn .college-featured-star {
+    margin-left: 8px;
+    margin-right: 7px;
+    font-size: 1.2rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spa-alphabet-nav .spa-featured-nav-btn,
+  .spa-college-btn .college-featured-star { animation: none !important; }
+}
+

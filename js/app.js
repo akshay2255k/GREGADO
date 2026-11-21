@@ -738,57 +738,225 @@ window.handleLogout = function () {
           }, 500);
         };
 
-        function renderPlaceData(key) {
-          spaNav.innerHTML = ''; spaContainer.innerHTML = '';
-          const pData = placesData[key];
-          if (!pData) return;
+        // =======================================================
+        // DESTINATION-SPECIFIC FEATURED COLLEGES
+        // This uses the same isFeatured flag saved by the existing Admin Panel.
+        // =======================================================
+        function isFeaturedCollege(colObj) {
+          const value = colObj && colObj.isFeatured;
+          return value === true || value === 1 ||
+            String(value ?? "").trim().toLowerCase() === "true" ||
+            String(value ?? "").trim() === "1";
+        }
 
-          if (pData.type === 'district') {
-            pData.data.sort((a, b) => a.district.localeCompare(b.district));
+        // One card renderer is shared by Featured and the regular college lists,
+        // so every starred college gets the same animated star in both places.
+        function createPlaceCollegeButton(colObj, locationStr) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "spa-college-btn";
+
+          const collegeName = String(colObj && colObj.name || "Unnamed College");
+          const featured = isFeaturedCollege(colObj);
+          btn.setAttribute("aria-label", `View ${collegeName}${featured ? ", featured college" : ""}`);
+
+          const name = document.createElement("span");
+          name.className = "college-name";
+          name.textContent = collegeName;
+          btn.appendChild(name);
+
+          if (featured) {
+            const star = document.createElement("span");
+            star.className = "college-featured-star";
+            star.textContent = "★";
+            star.title = "Featured college";
+            star.setAttribute("aria-label", "Featured college");
+            btn.appendChild(star);
+          }
+
+          const arrow = document.createElement("span");
+          arrow.className = "arrow";
+          arrow.textContent = "↗";
+          arrow.setAttribute("aria-hidden", "true");
+          btn.appendChild(arrow);
+
+          btn.addEventListener("click", () => openModal(colObj, locationStr));
+          return btn;
+        }
+
+        function renderPlaceData(key) {
+          spaNav.innerHTML = "";
+          spaContainer.innerHTML = "";
+
+          const pData = placesData[key];
+          if (!pData || !Array.isArray(pData.data)) return;
+
+          // Gather only the starred colleges belonging to the destination now open.
+          // For Kerala, retain the district name for the featured cards as well.
+          const districtGroups = pData.data.filter(item => item && Array.isArray(item.colleges));
+          const isDistrictDestination = pData.type === "district" || districtGroups.length > 0;
+
+          const featuredEntries = isDistrictDestination
+            ? districtGroups.flatMap(group =>
+                group.colleges
+                  .filter(isFeaturedCollege)
+                  .map(colObj => ({
+                    college: colObj,
+                    location: `${group.district}, ${pData.name}`
+                  }))
+              )
+            : pData.data
+                .filter(isFeaturedCollege)
+                .map(colObj => ({ college: colObj, location: pData.name }));
+
+          featuredEntries.sort((a, b) =>
+            String(a.college.name || "").localeCompare(
+              String(b.college.name || ""), undefined, { sensitivity: "base" }
+            )
+          );
+
+          // The ★ control is always the first item, above A-Z, when this place
+          // contains at least one Admin-featured college.
+          if (featuredEntries.length > 0) {
+            const featuredNavButton = document.createElement("button");
+            featuredNavButton.type = "button";
+            featuredNavButton.className = "spa-featured-nav-btn";
+            featuredNavButton.textContent = "★";
+            featuredNavButton.title = `Featured colleges (${featuredEntries.length})`;
+            featuredNavButton.setAttribute(
+              "aria-label", `Show ${featuredEntries.length} featured colleges in ${pData.name}`
+            );
+            featuredNavButton.addEventListener("click", () => {
+              const section = document.getElementById("sec-featured");
+              if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+            });
+            spaNav.appendChild(featuredNavButton);
+
+            const featuredSection = document.createElement("section");
+            featuredSection.className = "spa-group-section spa-featured-section";
+            featuredSection.id = "sec-featured";
+
+            const heading = document.createElement("h2");
+            heading.className = "spa-featured-heading";
+
+            const headingStar = document.createElement("span");
+            headingStar.className = "spa-featured-heading-star";
+            headingStar.textContent = "★";
+            headingStar.setAttribute("aria-hidden", "true");
+
+            const headingText = document.createElement("span");
+            headingText.textContent = "Featured Colleges";
+
+            const count = document.createElement("span");
+            count.className = "spa-featured-count";
+            count.textContent = String(featuredEntries.length);
+            count.setAttribute("aria-label", `${featuredEntries.length} featured colleges`);
+
+            heading.append(headingStar, headingText, count);
+            featuredSection.appendChild(heading);
+
+            const featuredGrid = document.createElement("div");
+            featuredGrid.className = "spa-colleges-grid";
+            featuredEntries.forEach(entry => {
+              featuredGrid.appendChild(
+                createPlaceCollegeButton(entry.college, entry.location)
+              );
+            });
+            featuredSection.appendChild(featuredGrid);
+            spaContainer.appendChild(featuredSection);
+          }
+
+          // Existing district-based alphabetical navigation (Kerala).
+          if (isDistrictDestination) {
+            pData.data.sort((a, b) =>
+              String(a.district || "").localeCompare(String(b.district || ""))
+            );
+
             for (let i = 65; i <= 90; i++) {
               const char = String.fromCharCode(i);
-              const btn = document.createElement('button'); btn.textContent = char;
-              const found = pData.data.find(d => d.district.toUpperCase().startsWith(char));
-              if (found) btn.onclick = () => document.getElementById(`sec-${found.district}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
-              else btn.classList.add('disabled');
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.textContent = char;
+              const found = pData.data.find(group =>
+                String(group.district || "").toUpperCase().startsWith(char)
+              );
+              if (found) {
+                btn.addEventListener("click", () => {
+                  document.getElementById(`sec-${found.district}`)?.scrollIntoView({
+                    behavior: "smooth", block: "start"
+                  });
+                });
+              } else {
+                btn.classList.add("disabled");
+                btn.setAttribute("aria-disabled", "true");
+              }
               spaNav.appendChild(btn);
             }
-            pData.data.forEach(item => {
-              const sec = document.createElement('section'); sec.className = 'spa-group-section'; sec.id = `sec-${item.district}`;
-              sec.innerHTML = `<h2>📍 ${item.district} Colleges</h2>`;
-              const grid = document.createElement('div'); grid.className = 'spa-colleges-grid';
-              item.colleges.sort((a, b) => a.name.localeCompare(b.name)).forEach(colObj => {
-                const btn = document.createElement('button'); btn.className = 'spa-college-btn';
-                btn.innerHTML = `<span>${colObj.name}</span><span class="arrow">↗</span>`;
-                btn.onclick = () => openModal(colObj, `${item.district}, ${pData.name}`);
-                grid.appendChild(btn);
-              });
-              sec.appendChild(grid); spaContainer.appendChild(sec);
+
+            pData.data.forEach(group => {
+              const section = document.createElement("section");
+              section.className = "spa-group-section";
+              section.id = `sec-${group.district}`;
+              section.innerHTML = `<h2>📍 ${group.district} Colleges</h2>`;
+
+              const grid = document.createElement("div");
+              grid.className = "spa-colleges-grid";
+              group.colleges
+                .sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")))
+                .forEach(colObj => {
+                  grid.appendChild(
+                    createPlaceCollegeButton(colObj, `${group.district}, ${pData.name}`)
+                  );
+                });
+
+              section.appendChild(grid);
+              spaContainer.appendChild(section);
             });
           } else {
-            const sorted = pData.data.sort((a, b) => a.name.localeCompare(b.name));
+            // Existing A-Z college navigation for all non-district destinations.
+            const sorted = pData.data.slice().sort((a, b) =>
+              String(a.name || "").localeCompare(String(b.name || ""))
+            );
             const grouped = {};
-            sorted.forEach(c => { const l = c.name.charAt(0).toUpperCase(); if (!grouped[l]) grouped[l] = []; grouped[l].push(c); });
+
+            sorted.forEach(colObj => {
+              const letter = String(colObj.name || "").charAt(0).toUpperCase();
+              if (!grouped[letter]) grouped[letter] = [];
+              grouped[letter].push(colObj);
+            });
 
             for (let i = 65; i <= 90; i++) {
               const char = String.fromCharCode(i);
-              const btn = document.createElement('button'); btn.textContent = char;
-              if (grouped[char]) btn.onclick = () => document.getElementById(`sec-${char}`).scrollIntoView({ behavior: 'smooth', block: 'start' });
-              else btn.classList.add('disabled');
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.textContent = char;
+              if (grouped[char]) {
+                btn.addEventListener("click", () => {
+                  document.getElementById(`sec-${char}`)?.scrollIntoView({
+                    behavior: "smooth", block: "start"
+                  });
+                });
+              } else {
+                btn.classList.add("disabled");
+                btn.setAttribute("aria-disabled", "true");
+              }
               spaNav.appendChild(btn);
             }
 
             Object.keys(grouped).forEach(letter => {
-              const sec = document.createElement('section'); sec.className = 'spa-group-section'; sec.id = `sec-${letter}`;
-              sec.innerHTML = `<h2>${letter}</h2>`;
-              const grid = document.createElement('div'); grid.className = 'spa-colleges-grid';
+              const section = document.createElement("section");
+              section.className = "spa-group-section";
+              section.id = `sec-${letter}`;
+              section.innerHTML = `<h2>${letter}</h2>`;
+
+              const grid = document.createElement("div");
+              grid.className = "spa-colleges-grid";
               grouped[letter].forEach(colObj => {
-                const btn = document.createElement('button'); btn.className = 'spa-college-btn';
-                btn.innerHTML = `<span>${colObj.name}</span><span class="arrow">↗</span>`;
-                btn.onclick = () => openModal(colObj, pData.name);
-                grid.appendChild(btn);
+                grid.appendChild(createPlaceCollegeButton(colObj, pData.name));
               });
-              sec.appendChild(grid); spaContainer.appendChild(sec);
+
+              section.appendChild(grid);
+              spaContainer.appendChild(section);
             });
           }
         }
