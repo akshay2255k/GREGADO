@@ -518,6 +518,17 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getFirestore, collection, addDoc, doc, deleteDoc, updateDoc, onSnapshot, serverTimestamp, query, orderBy, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+    // ==========================================
+    // QUICK UPLOAD LIMIT CONTROLLER (values in MB)
+    // Change only these numbers whenever you need.
+    // ==========================================
+    const UPLOAD_LIMITS_MB = {
+      image: 5,   // Maximum image size: 5 MB
+      video: 40,  // Maximum video size: 40 MB
+      pdf: 10     // Maximum PDF size: 10 MB
+    };
+    const MB_IN_BYTES = 1024 * 1024;
+
     const firebaseConfig = {
       apiKey: "AIzaSyDnmgIclnhm2tU-0d0ZYB_5KOxt86WMkD8",
       authDomain: "grigado.firebaseapp.com",
@@ -909,32 +920,38 @@
        const files = e.target.files;
        if(!files.length) return;
 
-       const MAX_VIDEO_SIZE = 85 * 1024 * 1024; // 85 MB (MiB)
        const statusElem = document.getElementById('imageStatus');
        let currentImages = JSON.parse(document.getElementById('uploadedImages').value || '[]');
-       let rejectedVideoCount = 0;
+       const rejectedFiles = [];
 
-       for(let file of files) {
+       for (const file of files) {
           const isVideo = file.type.toLowerCase().startsWith('video/')
             || /\.(mp4|mov|webm|avi|mkv|m4v|mpeg|mpg|3gp|ogv)$/i.test(file.name);
+          const isImage = file.type.toLowerCase().startsWith('image/')
+            || /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif|tif|tiff)$/i.test(file.name);
 
-          // Only videos have a size limit. Image uploads remain unrestricted.
-          if(isVideo && file.size > MAX_VIDEO_SIZE) {
-            rejectedVideoCount++;
-            const fileSizeMb = (file.size / (1024 * 1024)).toFixed(1);
-            statusElem.textContent = `❌ ${file.name} is ${fileSizeMb} MB. Videos must be 85 MB or smaller.`;
-            statusElem.className = 'upload-error';
+          if (!isImage && !isVideo) {
+            rejectedFiles.push(`${file.name}: unsupported file type`);
+            continue;
+          }
+
+          const mediaType = isVideo ? 'video' : 'image';
+          const limitMB = UPLOAD_LIMITS_MB[mediaType];
+          if (file.size > limitMB * MB_IN_BYTES) {
+            const fileSizeMB = (file.size / MB_IN_BYTES).toFixed(1);
+            rejectedFiles.push(`${file.name} (${fileSizeMB} MB) — maximum ${limitMB} MB`);
             continue;
           }
 
           const uploadedData = await uploadToCloudinary(file, 'imageStatus');
-          if(uploadedData) currentImages.push(uploadedData);
+          if (uploadedData) currentImages.push(uploadedData);
        }
 
        document.getElementById('uploadedImages').value = JSON.stringify(currentImages);
        renderMediaPreviews();
-       if(rejectedVideoCount > 0) {
-         statusElem.textContent = `${rejectedVideoCount} video(s) skipped. Maximum video size is 85 MB. Images have no size limit.`;
+
+       if (rejectedFiles.length > 0) {
+         statusElem.textContent = `Skipped: ${rejectedFiles.join(' | ')}`;
          statusElem.className = 'upload-error';
        }
        e.target.value = '';
@@ -943,7 +960,17 @@
     document.getElementById('pdfInput').addEventListener('change', async (e) => {
        const file = e.target.files[0];
        if(!file) return;
-       
+
+       const pdfLimitMB = UPLOAD_LIMITS_MB.pdf;
+       if (file.size > pdfLimitMB * MB_IN_BYTES) {
+          const fileSizeMB = (file.size / MB_IN_BYTES).toFixed(1);
+          const statusElem = document.getElementById('pdfStatus');
+          statusElem.textContent = `❌ ${file.name} is ${fileSizeMB} MB. PDFs must be ${pdfLimitMB} MB or smaller.`;
+          statusElem.className = 'upload-error';
+          e.target.value = '';
+          return;
+       }
+
        const uploadedData = await uploadToCloudinary(file, 'pdfStatus');
        if(uploadedData) {
           document.getElementById('uploadedPdf').value = uploadedData.url;
